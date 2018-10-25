@@ -167,3 +167,28 @@ def test_command_dispatcher():
     assert entity.get_map().get_id() == '광장_00_01'
 
     processor.stop()
+
+def test_command_parse():
+    # 입력받은 커맨드의 파싱을 테스트
+
+    atk_cmd = " 공격"
+    move_cmd = " 북"
+    test_arg_string = "100 200"
+    test2_arg_string = "100 병사"
+    dispatcher = CommandDispatcher(GameLogicProcessor(TestGameLogicProcessorEvent()))
+
+    ret, cmd, args = dispatcher._cmd_parse(atk_cmd)
+    assert ret == True and cmd == '공격' and args == ()
+
+    ret, cmd, args = dispatcher._cmd_parse(move_cmd)
+    assert ret == True and cmd == '북' and args == ()
+
+    ret, args = dispatcher._arg_parse(test_arg_string, ['int', 'int'])
+    assert ret == True and args == (100, 200)
+    
+    ret, args = dispatcher._arg_parse(test2_arg_string, ['int', 'str'])
+    assert ret == True and args == (100, '병사')
+
+    ret, args = dispatcher._arg_parse(test2_arg_string, ['msg'])
+    assert ret == True and args == (test2_arg_string,)
+
