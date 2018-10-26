@@ -1,31 +1,28 @@
+from .global_instance import GlobalInstance
+from .global_instance import GlobalInstanceContainer
+from .global_instance import GameLogicProcessorEvent
+from .command_dispatcher import CommandDispatcher
 from .utils import instance_checker
 from .world.world import World
 from .world.map import Map
-from .command_dispatcher import CommandDispatcher
 
-#Game Logic의 이벤트를 받아오는 클래스
-class GameLogicProcessorEvent:
-    
-    def event_output(self, output):
-        raise NotImplementedError
-        
 '''
 Game Logic을 처리하는 클래스
 
 1. 입력을 받아서 처리하고 결과를 이벤트 클래스에 알려준다.
 2. GameLogicProcessor.get_instance()로 글로벌 instance를 얻을 수 있다.
 '''
-class GameLogicProcessor:
-    __global_instance = None
+class GameLogicProcessor(GlobalInstanceContainer):
     LOCAL_PLAYER_ID = 0
      
     def __init__(self, event):
-        self._event = event
+        assert(isinstance(event, GameLogicProcessorEvent))
         self._is_start = False
+        self._event = event
         self._world = World()
-        self._set_global_instance(self)
-        self._latest_player_id = GameLogicProcessor.LOCAL_PLAYER_ID
         self._command_dispatcher = CommandDispatcher()
+        self._latest_player_id = GameLogicProcessor.LOCAL_PLAYER_ID
+        GlobalInstance.set_global_instance_container(self)
 
     def init_test(self):
         map1 = Map('광장_00_00')
@@ -45,11 +42,11 @@ class GameLogicProcessor:
 
     def start(self):
         self._is_start = True
-        self.get_event_instance().event_output('서버를 시작합니다')
+        GlobalInstance.get_event().event_output('서버를 시작합니다')
     
     def stop(self):
         self._is_start = False
-        self.get_event_instance().event_output('서버를 종료합니다')
+        GlobalInstance.get_event().event_output('서버를 종료합니다')
 
     def update(self):
         if not self._is_start:
@@ -60,23 +57,11 @@ class GameLogicProcessor:
     def process(self, cmd):
         pass
 
-
-    
     def add_player(self, name):
         return 0
-    
-    @classmethod
-    def get_instance(cls):
-        return cls.__global_instance
 
-    @classmethod
-    def get_event_instance(cls):
-        return cls.get_instance()._event
+    def get_event(self):
+        return self._event
 
-    @classmethod
-    def get_world(cls):
-        return cls.get_instance()._world
-
-    @classmethod
-    def _set_global_instance(cls, instance):
-        cls.__global_instance = instance
+    def get_world(self):
+        return self._world

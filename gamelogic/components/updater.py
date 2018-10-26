@@ -1,12 +1,12 @@
 # 주기적으로 update가 호출되는 component
 
-from ..processor import GameLogicProcessor
+from ..global_instance import GlobalInstance
 from .gameobject import Component
 
 class GocUpdater(Component):
     name = 'GocUpdater'
 
     def update(self):
-        GameLogicProcessor.get_event_instance()\
+        GlobalInstance.get_event()\
         .event_output('call %s\'s update()' % self.get_owner_name())
 

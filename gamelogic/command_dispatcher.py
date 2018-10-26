@@ -1,5 +1,6 @@
 #command_dispatcher.py
 
+from .global_instance import GlobalInstance
 from .components import factory
 
 class CommandDispatcher:
@@ -13,11 +14,10 @@ class CommandDispatcher:
         return self._player
 
     def dispatch(self, index, input_string):
-        from .processor import GameLogicProcessor
         ret, cmd, args = self._cmd_parse(input_string)
 
         if not ret:
-            GameLogicProcessor.get_event_instance().event_output('명령어가 올바르지 않습니다.')
+            GlobalInstance.get_event().event_output('명령어가 올바르지 않습니다.')
             return True
 
         if cmd == '종료':
@@ -25,7 +25,7 @@ class CommandDispatcher:
 
         if cmd == '접속':
             player = factory.create_object('플레이어', 100, 10, 1, 1)
-            world = GameLogicProcessor.get_world().get_world()
+            world = GlobalInstance.get_world().get_world()
             world.add_player(player)
             self._player = player
             return True
@@ -36,7 +36,7 @@ class CommandDispatcher:
                 behaviour.visit_map(cmd)
             return True
 
-        GameLogicProcessor.get_event_instance().event_output('명령어가 존재하지 않습니다.')        
+        GlobalInstance.get_event().event_output('명령어가 존재하지 않습니다.')        
         return True
 
     def _cmd_parse(self, input_string):

@@ -63,7 +63,7 @@ class TestGameLogicProcessorEvent(GameLogicProcessorEvent):
 def test_move_with_player():
     processor = GameLogicProcessor(TestGameLogicProcessorEvent())
     processor.start()
-    world = GameLogicProcessor.get_world()
+    world = processor.get_world()
 
     map1 = Map('광장_00_00')
     map2 = Map('광장_00_01')

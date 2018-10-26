@@ -1,5 +1,5 @@
 from .gameobject import Component
-from ..processor import GameLogicProcessor
+from ..global_instance import GlobalInstance
 
 class GocBehaviour(Component):
     name = 'GocBehaviour'
@@ -24,7 +24,7 @@ class GocBehaviour(Component):
         if not self.has_component('GocEntity'):
             return False
 
-        world = GameLogicProcessor.get_world()
+        world = GlobalInstance.get_world()
         map = world.get_map(map_id)
         if map is None:
             return False

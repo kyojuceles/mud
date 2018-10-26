@@ -1,6 +1,6 @@
 import time
 from gamelogic.processor import GameLogicProcessor
-from gamelogic.processor import GameLogicProcessorEvent
+from gamelogic.global_instance import GameLogicProcessorEvent
 from gamelogic.components import factory
 from gamelogic.command_dispatcher import CommandDispatcher
 from gamelogic.utils import async_input
@@ -12,15 +12,14 @@ class EventProcessor(GameLogicProcessorEvent):
         print(output)
 
 game_logic_processor = GameLogicProcessor(EventProcessor())
-dispatcher = CommandDispatcher(game_logic_processor)
-dispatcher.init_test()
+game_logic_processor.init_test()
 game_logic_processor.start()
 
 def console_command_process(command):
     if command == '종료':
         return False
     
-    dispatcher.dispatch(0, result)
+    #dispatcher.dispatch(0, result)
     return True
         
 
@@ -37,4 +36,4 @@ while(True):
 
     time.sleep(0.00001)
 
-GameLogicProcessor.get_event_instance().event_output('프로그램을 종료합니다.')
+game_logic_processor.get_event().event_output('프로그램을 종료합니다.')
