@@ -1,7 +1,7 @@
 import weakref
 
 from .gameobject import Component
-from gamelogic.utils import instance_checker
+from ..utils import instance_checker
 
 class GocEntity(Component):
     name = 'GocEntity'

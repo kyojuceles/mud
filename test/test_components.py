@@ -1,9 +1,9 @@
-from gamelogic.components import factory
-from gamelogic.world.world import World
-from gamelogic.world.map   import Map
-from gamelogic.processor import GameLogicProcessor
-from gamelogic.processor import GameLogicProcessorEvent
-from gamelogic.command_dispatcher import CommandDispatcher
+from ..gamelogic.components import factory
+from ..gamelogic.world.world import World
+from ..gamelogic.world.map   import Map
+from ..gamelogic.processor import GameLogicProcessor
+from ..gamelogic.processor import GameLogicProcessorEvent
+from ..gamelogic.command_dispatcher import CommandDispatcher
 
 def test_has_components_with_create_hero():
     hero = factory.create_object('hero', 100, 10, 1, 1)
@@ -134,9 +134,10 @@ def test_dest_after_add_dest_to_map():
     assert ('북', '광장_00_02') in result
     assert len(result) == 2
 
+
+'''
 def test_command_dispatcher():
     processor = GameLogicProcessor(TestGameLogicProcessorEvent())
-    dispatcher = CommandDispatcher(processor)
     processor.start()
     world = GameLogicProcessor.get_world()
 
@@ -154,7 +155,7 @@ def test_command_dispatcher():
     world.add_map(map2)
     world.add_map(map3)
 
-    dispatcher.dispatch(0, '접속')
+    processor.dispatch(0, '접속')
     player = dispatcher.get_player(0)
     behaviour = player.get_component('GocBehaviour')
     behaviour.enter_map('광장_00_00')
@@ -167,7 +168,8 @@ def test_command_dispatcher():
     assert entity.get_map().get_id() == '광장_00_01'
 
     processor.stop()
-
+'''
+'''
 def test_command_parse():
     # 입력받은 커맨드의 파싱을 테스트
 
@@ -191,4 +193,16 @@ def test_command_parse():
 
     ret, args = dispatcher._arg_parse(test2_arg_string, ['msg'])
     assert ret == True and args == (test2_arg_string,)
+
+def test_login_with_dispatcher():
+    logic_processor = GameLogicProcessor(TestGameLogicProcessorEvent())
+    dispatcher = CommandDispatcher(logic_processor)
+
+    dispatcher.init_test()
+    logic_processor.start()
+
+    dispatcher.dispatch(-1, '접속')
+
+    logic_processor.stop()
+'''
 

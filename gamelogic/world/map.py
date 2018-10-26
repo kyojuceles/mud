@@ -1,7 +1,7 @@
 # map.py
 
 import weakref
-from gamelogic.utils import instance_checker
+from ..utils import instance_checker
 
 class Map:
     

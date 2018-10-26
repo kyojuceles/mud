@@ -16,11 +16,19 @@ dispatcher = CommandDispatcher(game_logic_processor)
 dispatcher.init_test()
 game_logic_processor.start()
 
+def console_command_process(command):
+    if command == '종료':
+        return False
+    
+    dispatcher.dispatch(0, result)
+    return True
+        
+
 while(True):
     is_exit = False
     results = async_input.read()
     for result in results:
-        if not dispatcher.dispatch(0, result):
+        if not console_command_process(result):
             is_exit = True
             break
     

@@ -1,5 +1,5 @@
 from .gameobject import Component
-from gamelogic.processor import GameLogicProcessor
+from ..processor import GameLogicProcessor
 
 class GocBehaviour(Component):
     name = 'GocBehaviour'
