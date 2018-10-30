@@ -33,7 +33,7 @@ class GocBehaviour(Component):
         entity.set_map(map)
         return True
 
-    def visit_map(self, dest):
+    def move_map(self, dest):
         if not self.has_component('GocEntity'):
             return False
 

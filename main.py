@@ -2,7 +2,6 @@ import time
 from gamelogic.processor import GameLogicProcessor
 from gamelogic.global_instance import GameLogicProcessorEvent
 from gamelogic.components import factory
-from gamelogic.command_dispatcher import CommandDispatcher
 from gamelogic.utils import async_input
 
 

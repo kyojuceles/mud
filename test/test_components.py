@@ -3,7 +3,7 @@ from ..gamelogic.world.world import World
 from ..gamelogic.world.map   import Map
 from ..gamelogic.processor import GameLogicProcessor
 from ..gamelogic.processor import GameLogicProcessorEvent
-from ..gamelogic.command_dispatcher import CommandDispatcher
+from ..gamelogic.processor import Parser
 
 def test_has_components_with_create_hero():
     hero = factory.create_object('hero', 100, 10, 1, 1)
@@ -81,36 +81,34 @@ def test_move_with_player():
 
     player = factory.create_object('플레이어', 100, 10, 1, 1)
     world.add_player(player)
-
-    behaviour = player.get_component('GocBehaviour')
     entity = player.get_component('GocEntity')
 
-    behaviour.enter_map('광장_00_00')
+    processor.enter_map(player, '광장_00_00')
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_00'
 
-    behaviour.visit_map('남')
+    processor.move_map(player, '남')
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_01'
 
-    behaviour.visit_map('하늘')
+    processor.move_map(player, '하늘')
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_01'
 
-    behaviour.visit_map('북')
+    processor.move_map(player, '북')
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_00'
 
-    behaviour.visit_map('북')
+    processor.move_map(player, '북')
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_02'
 
-    behaviour.visit_map('남')
+    processor.move_map(player, '남')
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_00'
@@ -134,42 +132,6 @@ def test_dest_after_add_dest_to_map():
     assert ('북', '광장_00_02') in result
     assert len(result) == 2
 
-
-'''
-def test_command_dispatcher():
-    processor = GameLogicProcessor(TestGameLogicProcessorEvent())
-    processor.start()
-    world = GameLogicProcessor.get_world()
-
-    map1 = Map('광장_00_00')
-    map2 = Map('광장_00_01')
-    map3 = Map('광장_00_02')
-
-    map1.add_visitable_map('남', map2)
-    map1.add_visitable_map('북', map3)
-
-    map2.add_visitable_map('북', map1)
-    map3.add_visitable_map('남', map1)
-
-    world.add_map(map1)
-    world.add_map(map2)
-    world.add_map(map3)
-
-    processor.dispatch(0, '접속')
-    player = dispatcher.get_player(0)
-    behaviour = player.get_component('GocBehaviour')
-    behaviour.enter_map('광장_00_00')
-    entity = player.get_component('GocEntity')
-    assert entity.get_map() is not None
-    assert entity.get_map().get_id() == '광장_00_00'
-
-    dispatcher.dispatch(0, '남')
-    assert entity.get_map() is not None
-    assert entity.get_map().get_id() == '광장_00_01'
-
-    processor.stop()
-'''
-'''
 def test_command_parse():
     # 입력받은 커맨드의 파싱을 테스트
 
@@ -177,23 +139,23 @@ def test_command_parse():
     move_cmd = " 북"
     test_arg_string = "100 200"
     test2_arg_string = "100 병사"
-    dispatcher = CommandDispatcher(GameLogicProcessor(TestGameLogicProcessorEvent()))
+    parser = Parser()
 
-    ret, cmd, args = dispatcher._cmd_parse(atk_cmd)
+    ret, cmd, args = parser._cmd_parse(atk_cmd)
     assert ret == True and cmd == '공격' and args == ()
 
-    ret, cmd, args = dispatcher._cmd_parse(move_cmd)
+    ret, cmd, args = parser._cmd_parse(move_cmd)
     assert ret == True and cmd == '북' and args == ()
 
-    ret, args = dispatcher._arg_parse(test_arg_string, ['int', 'int'])
+    ret, args = parser._arg_parse(test_arg_string, ['int', 'int'])
     assert ret == True and args == (100, 200)
     
-    ret, args = dispatcher._arg_parse(test2_arg_string, ['int', 'str'])
+    ret, args = parser._arg_parse(test2_arg_string, ['int', 'str'])
     assert ret == True and args == (100, '병사')
 
-    ret, args = dispatcher._arg_parse(test2_arg_string, ['msg'])
+    ret, args = parser._arg_parse(test2_arg_string, ['msg'])
     assert ret == True and args == (test2_arg_string,)
-
+'''
 def test_login_with_dispatcher():
     logic_processor = GameLogicProcessor(TestGameLogicProcessorEvent())
     dispatcher = CommandDispatcher(logic_processor)
