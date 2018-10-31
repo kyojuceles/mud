@@ -65,7 +65,7 @@ def test_move_with_player():
     processor.start()
     world = processor.get_world()
 
-    map1 = Map('광장_00_00')
+    map1 = Map(GameLogicProcessor.ENTER_ROOM_ID)
     map2 = Map('광장_00_01')
     map3 = Map('광장_00_02')
 
@@ -79,36 +79,34 @@ def test_move_with_player():
     world.add_map(map2)
     world.add_map(map3)
 
-    player = factory.create_object('플레이어', 100, 10, 1, 1)
-    world.add_player(player)
+    processor.dispatch_message(GameLogicProcessor.CONSOLE_PLAYER_ID, '접속')
+    player = processor.get_player(GameLogicProcessor.CONSOLE_PLAYER_ID)
     entity = player.get_component('GocEntity')
-
-    processor.enter_map(player, '광장_00_00')
     current_map = entity.get_map()
     assert current_map is not None
-    assert current_map.get_id() == '광장_00_00'
+    assert current_map.get_id() == GameLogicProcessor.ENTER_ROOM_ID
 
-    processor.move_map(player, '남')
-    current_map = entity.get_map()
-    assert current_map is not None
-    assert current_map.get_id() == '광장_00_01'
-
-    processor.move_map(player, '하늘')
+    processor.dispatch_message(GameLogicProcessor.CONSOLE_PLAYER_ID, '남')
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_01'
 
-    processor.move_map(player, '북')
+    processor.dispatch_message(GameLogicProcessor.CONSOLE_PLAYER_ID, '하늘')
+    current_map = entity.get_map()
+    assert current_map is not None
+    assert current_map.get_id() == '광장_00_01'
+
+    processor.dispatch_message(GameLogicProcessor.CONSOLE_PLAYER_ID, '북')
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_00'
 
-    processor.move_map(player, '북')
+    processor.dispatch_message(GameLogicProcessor.CONSOLE_PLAYER_ID, '북')
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_02'
 
-    processor.move_map(player, '남')
+    processor.dispatch_message(GameLogicProcessor.CONSOLE_PLAYER_ID, '남')
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_00'
@@ -139,21 +137,20 @@ def test_command_parse():
     move_cmd = " 북"
     test_arg_string = "100 200"
     test2_arg_string = "100 병사"
-    parser = Parser()
 
-    ret, cmd, args = parser._cmd_parse(atk_cmd)
+    ret, cmd, args = Parser.cmd_parse(atk_cmd)
     assert ret == True and cmd == '공격' and args == ()
 
-    ret, cmd, args = parser._cmd_parse(move_cmd)
+    ret, cmd, args = Parser.cmd_parse(move_cmd)
     assert ret == True and cmd == '북' and args == ()
 
-    ret, args = parser._arg_parse(test_arg_string, ['int', 'int'])
+    ret, args = Parser._arg_parse(test_arg_string, ['int', 'int'])
     assert ret == True and args == (100, 200)
     
-    ret, args = parser._arg_parse(test2_arg_string, ['int', 'str'])
+    ret, args = Parser._arg_parse(test2_arg_string, ['int', 'str'])
     assert ret == True and args == (100, '병사')
 
-    ret, args = parser._arg_parse(test2_arg_string, ['msg'])
+    ret, args = Parser._arg_parse(test2_arg_string, ['msg'])
     assert ret == True and args == (test2_arg_string,)
 '''
 def test_login_with_dispatcher():

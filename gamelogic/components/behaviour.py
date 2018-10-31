@@ -31,6 +31,7 @@ class GocBehaviour(Component):
 
         entity = self.get_component('GocEntity')
         entity.set_map(map)
+        GlobalInstance.get_event().event_output(map.get_name() + '으로 들어갑니다.')
         return True
 
     def move_map(self, dest):
@@ -44,7 +45,9 @@ class GocBehaviour(Component):
 
         dest_map = current_map.get_visitable_map(dest)
         if dest_map is None:
+            GlobalInstance.get_event().event_output('갈 수 없습니다.')
             return False
 
         entity.set_map(dest_map)
+        GlobalInstance.get_event().event_output(dest + '쪽으로 갑니다.')
         return True
