@@ -6,11 +6,11 @@ from ..gamelogic.processor import GameLogicProcessorEvent
 from ..gamelogic.processor import Parser
 
 def test_has_components_with_create_hero():
-    hero = factory.create_object('hero', 100, 10, 1, 1)
+    hero = factory.create_object('hero', -1, 100, 10, 1, 1)
     assert hero.has_component('GocAttribute')
     assert hero.has_component('GocBehaviour')
     assert hero.has_component('GocUpdater')
-    assert hero.name == 'hero'
+    assert hero.get_name() == 'hero'
 
     attribute = hero.get_component('GocAttribute')
     assert attribute.hp == 100
@@ -19,8 +19,8 @@ def test_has_components_with_create_hero():
     assert attribute.spd == 1
 
 def test_target_hp_after_attack():
-    actor = factory.create_object('actor', 100, 10, 1, 1)
-    target = factory.create_object('target', 100, 10, 1, 1)
+    actor = factory.create_object('actor', -1, 100, 10, 1, 1)
+    target = factory.create_object('target', -1, 100, 10, 1, 1)
     actor.get_component('GocBehaviour').attack(target)
 
     attribute = target.get_component('GocAttribute')
@@ -29,8 +29,8 @@ def test_target_hp_after_attack():
     actor.get_component('GocBehaviour')
     
 def test_die_after_attack():
-    actor = factory.create_object('actor', 100, 10, 1, 1)
-    target = factory.create_object('target', 100, 10, 1, 1)
+    actor = factory.create_object('actor', -1, 100, 10, 1, 1)
+    target = factory.create_object('target', -1, 100, 10, 1, 1)
     behaviour = actor.get_component('GocBehaviour')
     for _ in range(1, 15):
         behaviour.attack(target)
@@ -40,7 +40,7 @@ def test_die_after_attack():
     assert attribute.is_die()
 
 def test_player_after_add_player_to_world():
-    player = factory.create_object('player', 100, 10, 1, 1)
+    player = factory.create_object('player', -1, 100, 10, 1, 1)
     world = World()
     world.add_player(player)
 
@@ -85,12 +85,16 @@ def test_move_with_player():
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == GameLogicProcessor.ENTER_ROOM_ID
+    assert player == current_map.get_object(player.get_name())
 
+    prev_map = current_map
     processor.dispatch_message(GameLogicProcessor.CONSOLE_PLAYER_ID, '남')
     current_map = entity.get_map()
+    assert prev_map.get_object(player.get_name()) == None
     assert current_map is not None
     assert current_map.get_id() == '광장_00_01'
-
+    assert player == current_map.get_object(player.get_name())
+    
     processor.dispatch_message(GameLogicProcessor.CONSOLE_PLAYER_ID, '하늘')
     current_map = entity.get_map()
     assert current_map is not None
@@ -152,16 +156,48 @@ def test_command_parse():
 
     ret, args = Parser._arg_parse(test2_arg_string, ['msg'])
     assert ret == True and args == (test2_arg_string,)
-'''
-def test_login_with_dispatcher():
-    logic_processor = GameLogicProcessor(TestGameLogicProcessorEvent())
-    dispatcher = CommandDispatcher(logic_processor)
 
-    dispatcher.init_test()
-    logic_processor.start()
+def test_game_object_enter_leave_map():
+    player = factory.create_object('플레이어', -1, 100, 10, 1, 1)
+    map = Map('테스트맵', '테스트맵', '정적이 흐르는 방')
+    map.enter_map(player)
+    obj = map.get_object('플레이어')
+    assert obj.get_name() == '플레이어'
+    
+    obj_list = map.get_object_list()
+    assert len(obj_list) == 1
+    assert obj_list[0].get_name() == '플레이어'  
 
-    dispatcher.dispatch(-1, '접속')
+    map.leave_map(player)
+    obj = map.get_object('플레이어')
+    assert obj == None
 
-    logic_processor.stop()
-'''
+def test_order_of_object_in_map():
+    player1 = factory.create_object('플레이어', 0, 100, 10, 1, 1)
+    player2 = factory.create_object('플레이어', 1, 100, 10, 1, 1)
+    map = Map('테스트맵', '테스트맵', '정적이 흐르는 방')
+    map.enter_map(player1)
+    map.enter_map(player2)
+    obj = map.get_object('1.플레이어')
+    assert obj.get_id() == 0
+
+    obj = map.get_object('2.플레이어')
+    assert obj.get_id() == 1
+
+    obj_list = map.get_object_list()
+    assert len(obj_list) == 2
+    assert obj_list[0].get_id() == 0
+    assert obj_list[1].get_id() == 1
+
+def test_output_map_desc():
+    player = factory.create_object('플레이어', 0, 100, 10, 1, 1)
+    map = Map('테스트맵', '테스트맵', '정적이 흐르는 방')
+    map2 = Map('테스트맵2', '테스트맵2', '정적이 흐르는 방')
+    map.add_visitable_map('남', map2)
+    map.enter_map(player)
+    
+    map_desc = map.get_desc()
+    assert map_desc == '테스트맵\n정적이 흐르는 방\n[남]\n[플레이어]님이 서 있습니다.'
+
+
 

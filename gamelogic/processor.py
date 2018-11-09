@@ -26,9 +26,11 @@ class GameLogicProcessor(GlobalInstanceContainer):
         GlobalInstance.set_global_instance_container(self)
 
     def init_test(self):
-        map1 = Map(GameLogicProcessor.ENTER_ROOM_ID, '광장 입구')
-        map2 = Map('광장_00_01', '광장 남쪽')
-        map3 = Map('광장_00_02', '광장 북쪽')
+        map1 = Map(GameLogicProcessor.ENTER_ROOM_ID, '광장 입구', '중앙에는 분수대가 있고 많은 사람들이 \
+분주하게 움직이고 있다.')
+        map2 = Map('광장_00_01', '광장 남쪽', '북쪽으로 분수대가 보인다. 많은 사람들이 분주하게 움직이고 있다.')
+        map3 = Map('광장_00_02', '광장 북쪽', '남쪽으로 분수대가 보인다. 북쪽으로 커다란 성이 보인다.\n\
+하지만 경비병들이 막아서고 있어서 들어가진 못할 것 같다.')
 
         map1.add_visitable_map('남', map2)
         map1.add_visitable_map('북', map3)
@@ -42,11 +44,11 @@ class GameLogicProcessor(GlobalInstanceContainer):
 
     def start(self):
         self._is_start = True
-        GlobalInstance.get_event().event_output('서버를 시작합니다')
+        GlobalInstance.get_event().event_output('서버를 시작합니다\n')
     
     def stop(self):
         self._is_start = False
-        GlobalInstance.get_event().event_output('서버를 종료합니다')
+        GlobalInstance.get_event().event_output('서버를 종료합니다\n')
 
     def update(self):
         if not self._is_start:
@@ -73,20 +75,20 @@ class GameLogicProcessor(GlobalInstanceContainer):
         ret, cmd, args = Parser.cmd_parse(msg)
 
         if not ret:
-            self._event.event_output('잘못된 명령입니다.')
+            self._event.event_output('잘못된 명령입니다.\n')
             return False
 
         if cmd == '접속':
             if id in self._players:
                 return False
 
-            player = factory.create_object('플레이어', 100, 10, 1, 1)
+            player = factory.create_object('플레이어', -1, 100, 10, 1, 1)
             self._world.add_player(player)
             self._players[id] = player
             player.get_component('GocBehaviour').enter_map(GameLogicProcessor.ENTER_ROOM_ID)
             return True
 
-        self._event.event_output('잘못된 명령입니다.')
+        self._event.event_output('잘못된 명령입니다.\n')
         return False
 
     def _dispatch_message_after_login(self, id, msg):
@@ -97,7 +99,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
             return False
 
         if not ret:
-            self._event.event_output('잘못된 명령입니다.')
+            self._event.event_output('잘못된 명령입니다.\n')
             return False
         
         if cmd in ('동', '서', '남', '북'):
@@ -105,7 +107,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
             behaviour.move_map(cmd)
             return True
 
-        self._event.event_output('잘못된 명령입니다.')
+        self._event.event_output('잘못된 명령입니다.\n')
         return False
 
     def _is_login(self, id):

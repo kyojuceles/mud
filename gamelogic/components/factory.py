@@ -4,8 +4,8 @@ from .behaviour import GocBehaviour
 from .updater import GocUpdater
 from .entity import GocEntity
 
-def create_object(name, hp, atk, armor, spd):
-    obj = GameObject(name)
+def create_object(name, id, hp, atk, armor, spd):
+    obj = GameObject(name, id)
     obj.add_component(GocEntity)
     obj.add_component(GocAttribute, hp, atk, armor, spd)
     obj.add_component(GocBehaviour)

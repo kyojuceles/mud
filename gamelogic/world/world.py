@@ -15,10 +15,10 @@ class World:
     def add_player(self, player):
         assert(instance_checker.is_player(player))
 
-        if player.name in self._players:
+        if player.get_name() in self._players:
             return False
         
-        self._players[player.name] = player
+        self._players[player.get_name()] = player
         assert(self._add_object(player))
         return True
 

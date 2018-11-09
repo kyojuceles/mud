@@ -8,7 +8,7 @@ from gamelogic.utils import async_input
 class EventProcessor(GameLogicProcessorEvent):
 
     def event_output(self, output):
-        print(output)
+        print(output, end = '')
 
 game_logic_processor = GameLogicProcessor(EventProcessor())
 game_logic_processor.init_test()
@@ -34,4 +34,4 @@ while(True):
 
     time.sleep(0.00001)
 
-game_logic_processor.get_event().event_output('프로그램을 종료합니다.')
+game_logic_processor.get_event().event_output('프로그램을 종료합니다.\n')

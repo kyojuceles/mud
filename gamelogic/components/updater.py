@@ -8,5 +8,5 @@ class GocUpdater(Component):
 
     def update(self):
         GlobalInstance.get_event()\
-        .event_output('call %s\'s update()' % self.get_owner_name())
+        .event_output('call %s\'s update()\n' % self.get_owner_name())
 

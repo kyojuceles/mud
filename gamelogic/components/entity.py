@@ -18,4 +18,7 @@ class GocEntity(Component):
             return None
         
         return self.map()
+
+    def get_desc(self):
+        return '[' + self.get_owner_name() +']님이 서 있습니다.\n'
     
