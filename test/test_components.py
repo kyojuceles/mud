@@ -4,6 +4,7 @@ from ..gamelogic.world.map   import Map
 from ..gamelogic.processor import GameLogicProcessor
 from ..gamelogic.processor import GameLogicProcessorEvent
 from ..gamelogic.processor import Parser
+from ..gamelogic.components.entity import GocEntity
 
 def test_has_components_with_create_hero():
     hero = factory.create_object('hero', -1, 100, 10, 1, 1)
@@ -197,7 +198,18 @@ def test_output_map_desc():
     map.enter_map(player)
     
     map_desc = map.get_desc()
-    assert map_desc == '테스트맵\n정적이 흐르는 방\n[남]\n[플레이어]님이 서 있습니다.'
+    assert map_desc == '테스트맵\n정적이 흐르는 방\n[남]\n[플레이어]이 서 있습니다.\n'
+
+def test_attack_with_behaviour():
+    attacker = factory.create_object('공격자', 0, 100, 10, 1, 1)
+    target = factory.create_object('방어자', 1, 100, 10, 0, 1)
+
+    behaviour = attacker.get_component('GocBehaviour')
+    behaviour.start_battle(target)
+
+    assert attacker.get_component('GocEntity').get_status() == GocEntity.STATUS_BATTLE
+    assert target.get_component('GocEntity').get_status() == GocEntity.STATUS_BATTLE
+
 
 
 

@@ -1,8 +1,22 @@
 from .gameobject import Component
+from .entity import GocEntity
 from ..global_instance import GlobalInstance
 
 class GocBehaviour(Component):
     name = 'GocBehaviour'
+
+    def start_battle(self, target):
+        actor_entity = self.get_component('GocEntity')
+        target_entity = target.get_component('GocEntity')
+
+        if actor_entity.get_status() != GocEntity.STATUS_IDLE and \
+           target_entity.get_status() == GocEntity.STATUS_DEATH:
+            return False
+
+        actor_entity.set_status(GocEntity.STATUS_BATTLE)
+        target_entity.set_status(GocEntity.STATUS_BATTLE)
+        return True
+
 
     def attack(self, target):
         if not target.has_component('GocBehaviour'):

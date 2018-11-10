@@ -7,6 +7,9 @@ class GocUpdater(Component):
     name = 'GocUpdater'
 
     def update(self):
-        GlobalInstance.get_event()\
-        .event_output('call %s\'s update()\n' % self.get_owner_name())
+        pass
+        entity = self.get_component('GocEntity')
+        if entity is None:
+            return
+
 
