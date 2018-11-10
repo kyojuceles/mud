@@ -19,27 +19,6 @@ def test_has_components_with_create_hero():
     assert attribute.armor == 1
     assert attribute.spd == 1
 
-def test_target_hp_after_attack():
-    actor = factory.create_object('actor', -1, 100, 10, 1, 1)
-    target = factory.create_object('target', -1, 100, 10, 1, 1)
-    actor.get_component('GocBehaviour').attack(target)
-
-    attribute = target.get_component('GocAttribute')
-    assert attribute.hp == 91
-    
-    actor.get_component('GocBehaviour')
-    
-def test_die_after_attack():
-    actor = factory.create_object('actor', -1, 100, 10, 1, 1)
-    target = factory.create_object('target', -1, 100, 10, 1, 1)
-    behaviour = actor.get_component('GocBehaviour')
-    for _ in range(1, 15):
-        behaviour.attack(target)
-    
-    attribute = target.get_component('GocAttribute')
-    assert attribute.hp == 0
-    assert attribute.is_die()
-
 def test_player_after_add_player_to_world():
     player = factory.create_object('player', -1, 100, 10, 1, 1)
     world = World()
@@ -58,7 +37,7 @@ def test_map_after_add_map_to_world():
 class TestGameLogicProcessorEvent(GameLogicProcessorEvent):
     
     def event_output(self, output):
-        pass
+        print(output, end = '')
 
 
 def test_move_with_player():
@@ -138,13 +117,13 @@ def test_dest_after_add_dest_to_map():
 def test_command_parse():
     # 입력받은 커맨드의 파싱을 테스트
 
-    atk_cmd = " 공격"
+    atk_cmd = " 공격 경비병"
     move_cmd = " 북"
     test_arg_string = "100 200"
     test2_arg_string = "100 병사"
 
     ret, cmd, args = Parser.cmd_parse(atk_cmd)
-    assert ret == True and cmd == '공격' and args == ()
+    assert ret == True and cmd == '공격' and args == ('경비병',)
 
     ret, cmd, args = Parser.cmd_parse(move_cmd)
     assert ret == True and cmd == '북' and args == ()
@@ -200,15 +179,28 @@ def test_output_map_desc():
     map_desc = map.get_desc()
     assert map_desc == '테스트맵\n정적이 흐르는 방\n[남]\n[플레이어]이 서 있습니다.\n'
 
-def test_attack_with_behaviour():
+def test_start_battle_with_behaviour():
     attacker = factory.create_object('공격자', 0, 100, 10, 1, 1)
-    target = factory.create_object('방어자', 1, 100, 10, 0, 1)
-
+    target = factory.create_object('방어자', 1, 100, 10, 1, 1)
+    map = Map('테스트맵', '테스트맵', '정적이 흐르는 방')
+    attacker.get_component('GocEntity').set_map(map)
+    map.enter_map(attacker)
+    map.enter_map(target)
+    
     behaviour = attacker.get_component('GocBehaviour')
-    behaviour.start_battle(target)
+    behaviour.start_battle('방어자')
 
     assert attacker.get_component('GocEntity').get_status() == GocEntity.STATUS_BATTLE
     assert target.get_component('GocEntity').get_status() == GocEntity.STATUS_BATTLE
+
+    for _ in range(0, 10):
+        attacker.get_component('GocUpdater').update()
+        target.get_component('GocUpdater').update()
+    
+    assert attacker.get_component('GocAttribute').hp == 10
+    assert target.get_component('GocAttribute').hp == 10
+
+
 
 
 

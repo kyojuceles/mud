@@ -2,6 +2,7 @@ from .global_instance import GlobalInstance
 from .global_instance import GlobalInstanceContainer
 from .global_instance import GameLogicProcessorEvent
 from .utils import instance_checker
+from .utils.timer import Timer
 from .world.world import World
 from .world.map import Map
 from .components import factory
@@ -16,6 +17,7 @@ Game Logic을 처리하는 클래스
 class GameLogicProcessor(GlobalInstanceContainer):
     ENTER_ROOM_ID = '광장_00_00'
     CONSOLE_PLAYER_ID = -1
+    UPDATE_INTERVAL = 1
      
     def __init__(self, event):
         assert(isinstance(event, GameLogicProcessorEvent))
@@ -23,6 +25,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
         self._event = event
         self._world = World()
         self._players = {}
+        self._update_timer = Timer(GameLogicProcessor.UPDATE_INTERVAL)
         GlobalInstance.set_global_instance_container(self)
 
     def init_test(self):
@@ -42,6 +45,14 @@ class GameLogicProcessor(GlobalInstanceContainer):
         self._world.add_map(map2)
         self._world.add_map(map3)
 
+        npc1 = factory.create_object('경비병', 10000, 100, 1, 0, 1)
+        self._world.add_npc(npc1)
+        npc1.get_component('GocBehaviour').enter_map('광장_00_02')
+
+        npc2 = factory.create_object('경비병', 10001, 100, 1, 0, 1)
+        self._world.add_npc(npc2)
+        npc2.get_component('GocBehaviour').enter_map('광장_00_02')
+
     def start(self):
         self._is_start = True
         GlobalInstance.get_event().event_output('서버를 시작합니다\n')
@@ -54,7 +65,8 @@ class GameLogicProcessor(GlobalInstanceContainer):
         if not self._is_start:
             return
 
-        self._world.update()
+        if self._update_timer.is_signal():
+            self._world.update()
 
     def get_player(self, id):
         return self._players.get(id)
@@ -107,6 +119,11 @@ class GameLogicProcessor(GlobalInstanceContainer):
             behaviour.move_map(cmd)
             return True
 
+        if cmd == '공격':
+            behaviour = player.get_component('GocBehaviour')
+            behaviour.start_battle(args[0])
+            return True
+
         self._event.event_output('잘못된 명령입니다.\n')
         return False
 
@@ -114,7 +131,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
         return id in self._players
 
 class Parser:
-    arg_infos_list = {}
+    arg_infos_list = {'공격': ['str']}
 
     @staticmethod
     def cmd_parse(msg):
@@ -156,6 +173,8 @@ class Parser:
                     return False, ()
                 args.append(int(arg_str))
             else:
+                if not arg_str:
+                    return False, ()
                 args.append(arg_str)
 
         return True, tuple(args)

@@ -1,20 +1,35 @@
 from .gameobject import Component
 from .entity import GocEntity
+from ..world.map import Map
 from ..global_instance import GlobalInstance
 
 class GocBehaviour(Component):
     name = 'GocBehaviour'
 
-    def start_battle(self, target):
+    def start_battle(self, target_name):
         actor_entity = self.get_component('GocEntity')
+        current_map = actor_entity.get_map()
+        if current_map is None:
+            return False
+
+        target = current_map.get_object(target_name)
+        if target is None:
+            GlobalInstance.get_event().event_output('대상이 존재하지 않습니다.\n')
+            return False
+
         target_entity = target.get_component('GocEntity')
 
-        if actor_entity.get_status() != GocEntity.STATUS_IDLE and \
+        if actor_entity.get_status() != GocEntity.STATUS_IDLE or \
            target_entity.get_status() == GocEntity.STATUS_DEATH:
             return False
 
         actor_entity.set_status(GocEntity.STATUS_BATTLE)
-        target_entity.set_status(GocEntity.STATUS_BATTLE)
+        actor_entity.set_target(target)
+
+        if target_entity.get_status() != GocEntity.STATUS_BATTLE:
+            target_entity.set_status(GocEntity.STATUS_BATTLE)
+            target_entity.set_target(self.get_owner())
+        
         return True
 
 
@@ -22,17 +37,16 @@ class GocBehaviour(Component):
         if not target.has_component('GocBehaviour'):
             return
 
-        actorAttribute = self.get_component('GocAttribute')
-        targetAttribute = target.get_component('GocAttribute')
-        dmg = actorAttribute.atk - targetAttribute.armor
+        actor_attribute = self.get_component('GocAttribute')
+        target_attribute = target.get_component('GocAttribute')
+        dmg = actor_attribute.atk - target_attribute.armor
         dmg = max(dmg, 0)
-        targetAttribute.hp = max(targetAttribute.hp - dmg, 0)
+        target_attribute.hp = max(target_attribute.hp - dmg, 0)
 
-        print('%s가 %s에게 %d 데미지를 주었다.' % (self.get_owner_name(), target.get_name(), dmg))
-        print('%s의 체력은 %d이 되었다.' % (target.get_name(), targetAttribute.hp))
+        GlobalInstance.get_event().event_output(\
+        '%s가 %s에게 %d 데미지를 주었다.(남은체력 %d)\n' % \
+        (self.get_owner_name(), target.get_name(), dmg, target_attribute.hp))
 
-        if targetAttribute.is_die():
-            print('%s는 사망했다.' % target.get_name())
 
     def enter_map(self, map_id):
         if not self.has_component('GocEntity'):

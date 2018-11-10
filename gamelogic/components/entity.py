@@ -22,8 +22,11 @@ class GocEntity(Component):
         self._status = status
 
     def set_map(self, map):
-        assert(instance_checker.is_map(map))
-        self._map = weakref.ref(map)
+        if map is None:
+            self._map = None
+        else:
+            assert(instance_checker.is_map(map))
+            self._map = weakref.ref(map)
 
     def get_map(self):
         if self._map is None:
@@ -32,11 +35,14 @@ class GocEntity(Component):
         return self._map()
 
     def set_target(self, target):
-        assert(instance_checker.is_gameobject(target))
-        self._target = weakref.ref(target)
+        if target is None:
+            self._target = None
+        else:
+            assert(instance_checker.is_gameobject(target))
+            self._target = weakref.ref(target)
 
     def get_target(self):
-        if self._map is None:
+        if self._target is None:
             return None
 
         return self._target()

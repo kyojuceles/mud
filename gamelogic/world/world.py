@@ -48,7 +48,7 @@ class World:
         return self._maps[id]
 
     def update(self):
-        for map in self._maps:
+        for map in self._maps.values():
             map.update()
 
         for obj in self._objs:

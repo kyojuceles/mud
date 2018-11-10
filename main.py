@@ -32,6 +32,7 @@ while(True):
     if is_exit:
         break
 
+    game_logic_processor.update()
     time.sleep(0.00001)
 
 game_logic_processor.get_event().event_output('프로그램을 종료합니다.\n')
