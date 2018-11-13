@@ -2,6 +2,7 @@ import weakref
 
 from .gameobject import Component
 from ..utils import instance_checker
+from ..world.map import Map
 
 class GocEntity(Component):
     name = 'GocEntity'
@@ -47,21 +48,21 @@ class GocEntity(Component):
 
         return self._target()
 
-    def get_desc(self):
+    def get_status_desc(self):
         desc = ''
 
         if self._status == GocEntity.STATUS_DEATH:
-            desc = self._make_name_title() + '의 시체가 놓여있습니다.\n'
+            desc = self.make_name_title() + '의 시체가 놓여있습니다.\n'
         elif self._status == GocEntity.STATUS_BATTLE and \
              self.get_target() is not None:
-            desc = self._make_name_title() + '이 ' + \
+            desc = self.make_name_title() + '이 ' + \
             self.get_target().get_component('GocEntity')._make_name_title() + \
             '를 공격중입니다.\n'
         else:
-            desc = self._make_name_title() + '이 서 있습니다.\n'
+            desc = self.make_name_title() + '이 서 있습니다.\n'
 
         return desc
 
-    def _make_name_title(self):
+    def make_name_title(self):
         return '[' + self.get_owner_name() + ']'
     

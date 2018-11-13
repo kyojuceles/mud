@@ -2,15 +2,21 @@ import time
 from gamelogic.processor import GameLogicProcessor
 from gamelogic.global_instance import GameLogicProcessorEvent
 from gamelogic.components import factory
+from gamelogic.components.network import NetworkConsoleEventBase
 from gamelogic.utils import async_input
 
 
 class EventProcessor(GameLogicProcessorEvent):
 
     def event_output(self, output):
-        print(output, end = '')
+        print('[SYSTEM] ' + output, end = '')
 
-game_logic_processor = GameLogicProcessor(EventProcessor())
+class EventNetworkConsole(NetworkConsoleEventBase):
+
+    def on_receive(self, msg):
+        print(msg, end = '')
+
+game_logic_processor = GameLogicProcessor(EventProcessor(), EventNetworkConsole())
 game_logic_processor.init_test()
 game_logic_processor.start()
 

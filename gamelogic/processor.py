@@ -7,6 +7,7 @@ from .world.world import World
 from .world.map import Map
 from .components import factory
 from .components.behaviour import GocBehaviour
+from .components.network import NetworkConsoleEventBase
 
 '''
 Game Logic을 처리하는 클래스
@@ -19,10 +20,12 @@ class GameLogicProcessor(GlobalInstanceContainer):
     CONSOLE_PLAYER_ID = -1
     UPDATE_INTERVAL = 1
      
-    def __init__(self, event):
+    def __init__(self, event, console_player_event):
         assert(isinstance(event, GameLogicProcessorEvent))
+        assert(isinstance(console_player_event, NetworkConsoleEventBase))
         self._is_start = False
         self._event = event
+        self._console_player_event = console_player_event
         self._world = World()
         self._players = {}
         self._update_timer = Timer(GameLogicProcessor.UPDATE_INTERVAL)
@@ -45,11 +48,11 @@ class GameLogicProcessor(GlobalInstanceContainer):
         self._world.add_map(map2)
         self._world.add_map(map3)
 
-        npc1 = factory.create_object('경비병', 10000, 100, 1, 0, 1)
+        npc1 = factory.create_object_npc('경비병', 10000, 100, 1, 0, 1)
         self._world.add_npc(npc1)
         npc1.get_component('GocBehaviour').enter_map('광장_00_02')
 
-        npc2 = factory.create_object('경비병', 10001, 100, 1, 0, 1)
+        npc2 = factory.create_object_npc('경비병', 10001, 100, 1, 0, 1)
         self._world.add_npc(npc2)
         npc2.get_component('GocBehaviour').enter_map('광장_00_02')
 
@@ -94,7 +97,15 @@ class GameLogicProcessor(GlobalInstanceContainer):
             if id in self._players:
                 return False
 
-            player = factory.create_object('플레이어', -1, 100, 10, 1, 1)
+            player = None
+
+            if self._is_console_player(id):
+                player = factory.create_console_object(
+                    '플레이어', self._console_player_event, 100, 10, 1, 1)
+            else:
+                player = factory.create_object_player(
+                    '플레이어', -1, 100, 10, 1, 1)
+
             self._world.add_player(player)
             self._players[id] = player
             player.get_component('GocBehaviour').enter_map(GameLogicProcessor.ENTER_ROOM_ID)
@@ -102,6 +113,9 @@ class GameLogicProcessor(GlobalInstanceContainer):
 
         self._event.event_output('잘못된 명령입니다.\n')
         return False
+
+    def _is_console_player(self, id):
+        return id == GameLogicProcessor.CONSOLE_PLAYER_ID
 
     def _dispatch_message_after_login(self, id, msg):
         ret, cmd, args = Parser.cmd_parse(msg)
@@ -122,6 +136,16 @@ class GameLogicProcessor(GlobalInstanceContainer):
         if cmd == '공격':
             behaviour = player.get_component('GocBehaviour')
             behaviour.start_battle(args[0])
+            return True
+
+        if cmd == '본다':
+            behaviour = player.get_component('GocBehaviour')
+            behaviour.output_current_map_desc()
+            return True
+
+        if cmd == '상태':
+            behaviour = player.get_component('GocBehaviour')
+            behaviour.output_status()
             return True
 
         self._event.event_output('잘못된 명령입니다.\n')

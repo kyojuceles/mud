@@ -22,7 +22,7 @@ class Map:
         return self._name
     
     def get_desc(self):
-        output_string = self.get_name()
+        output_string = '[' + self.get_name() + ']'
         output_string += '\n'
         output_string += self._desc
         output_string += '\n'
@@ -33,7 +33,7 @@ class Map:
         output_string += ']\n'
 
         for obj in self._objs:
-            output_string += obj.get_component('GocEntity').get_desc()
+            output_string += obj.get_component('GocEntity').get_status_desc()
 
         return output_string
 
