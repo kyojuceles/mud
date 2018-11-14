@@ -10,9 +10,11 @@ from ..gamelogic.processor import GameLogicProcessorEvent
 from ..gamelogic.processor import Parser
 from ..gamelogic.components.entity import GocEntity
 from ..gamelogic.components.network import NetworkConsoleEventBase
+from ..gamelogic.tables.level_table import LevelTable
+from ..gamelogic.tables.character_table import CharacterTable
 
 def test_has_components_with_create_hero():
-    hero = factory.create_object_npc('hero', -1, 100, 10, 1, 1)
+    hero = factory.create_object_npc_with_attribute('hero', -1, 100, 10, 1, 1)
     assert hero.has_component(GocAttribute)
     assert hero.has_component(GocBehaviour)
     assert hero.has_component(GocUpdaterBase)
@@ -25,7 +27,7 @@ def test_has_components_with_create_hero():
     assert attribute.spd == 1
 
 def test_player_after_add_player_to_world():
-    player = factory.create_object_npc('player', -1, 100, 10, 1, 1)
+    player = factory.create_object_npc_with_attribute('player', -1, 100, 10, 1, 1)
     world = World()
     world.add_player(player)
 
@@ -148,7 +150,7 @@ def test_command_parse():
     assert ret == True and args == (test2_arg_string,)
 
 def test_game_object_enter_leave_map():
-    player = factory.create_object_npc('플레이어', -1, 100, 10, 1, 1)
+    player = factory.create_object_npc_with_attribute('플레이어', -1, 100, 10, 1, 1)
     map = Map('테스트맵', '테스트맵', '정적이 흐르는 방')
     map.enter_map(player)
     obj = map.get_object('플레이어')
@@ -163,8 +165,8 @@ def test_game_object_enter_leave_map():
     assert obj == None
 
 def test_order_of_object_in_map():
-    player1 = factory.create_object_npc('플레이어', 0, 100, 10, 1, 1)
-    player2 = factory.create_object_npc('플레이어', 1, 100, 10, 1, 1)
+    player1 = factory.create_object_npc_with_attribute('플레이어', 0, 100, 10, 1, 1)
+    player2 = factory.create_object_npc_with_attribute('플레이어', 1, 100, 10, 1, 1)
     map = Map('테스트맵', '테스트맵', '정적이 흐르는 방')
     map.enter_map(player1)
     map.enter_map(player2)
@@ -180,7 +182,7 @@ def test_order_of_object_in_map():
     assert obj_list[1].get_id() == 1
 
 def test_output_map_desc():
-    player = factory.create_object_npc('플레이어', 0, 100, 10, 1, 1)
+    player = factory.create_object_npc_with_attribute('플레이어', 0, 100, 10, 1, 1)
     map = Map('테스트맵', '테스트맵', '정적이 흐르는 방')
     map2 = Map('테스트맵2', '테스트맵2', '정적이 흐르는 방')
     map.add_visitable_map('남', map2)
@@ -190,8 +192,8 @@ def test_output_map_desc():
     assert map_desc == '[테스트맵]\n정적이 흐르는 방\n[남]\n'
 
 def test_start_battle_with_behaviour():
-    attacker = factory.create_object_npc('공격자', 0, 100, 10, 1, 1)
-    target = factory.create_object_npc('방어자', 1, 100, 10, 1, 1)
+    attacker = factory.create_object_npc_with_attribute('공격자', 0, 100, 10, 1, 1)
+    target = factory.create_object_npc_with_attribute('방어자', 1, 100, 10, 1, 1)
     map = Map('테스트맵', '테스트맵', '정적이 흐르는 방')
     attacker.get_component(GocEntity).set_map(map)
     map.enter_map(attacker)
@@ -212,6 +214,56 @@ def test_start_battle_with_behaviour():
     
     assert attacker.get_component(GocAttribute).hp == 10
     assert target.get_component(GocAttribute).hp == 10
+
+def test_data_tables():
+    table = LevelTable.initialize()
+    table.add_row(1, 100, 100, 10, 1, 1)
+    table.add_row(2, 200, 150, 12, 1, 1)
+    table.add_row(3, 300, 200, 14, 2, 1)
+    table.add_row(4, 400, 250, 16, 2, 1)
+    table.add_row(5, 500, 300, 18, 1, 1)
+
+    level_info_1 = LevelTable.get_lv_info(1)
+    level_info_3 = LevelTable.get_lv_info(3)
+    level_info_6 = LevelTable.get_lv_info(6)
+
+    assert level_info_1.max_hp == 100
+    assert level_info_1.atk == 10
+    assert level_info_1.armor == 1
+    assert level_info_1.spd == 1
+
+    assert level_info_3.max_hp == 200
+    assert level_info_3.atk == 14
+    assert level_info_3.armor == 2
+    assert level_info_3.spd == 1
+
+    assert level_info_6 is None
+
+    chr_table = CharacterTable.initialize()
+    chr_table.add_row(1000, '경비병', 10, 100, 10, 1, 1)
+    chr_table.add_row(1001, '경비대장', 100, 150, 12, 1, 1)
+
+    chr_info_1000 = CharacterTable.get_chr_info(1000)
+    chr_info_1001 = CharacterTable.get_chr_info(1001)
+    chr_info_1002 = CharacterTable.get_chr_info(1002)
+
+    assert chr_info_1000.name == '경비병'
+    assert chr_info_1000.gain_xp == 10
+    assert chr_info_1000.max_hp == 100
+    assert chr_info_1000.atk == 10
+    assert chr_info_1000.armor == 1
+    assert chr_info_1000.spd == 1
+
+    assert chr_info_1001.name
+    assert chr_info_1001.gain_xp == 100
+    assert chr_info_1001.max_hp == 150
+    assert chr_info_1001.atk == 12
+    assert chr_info_1001.armor == 1
+    assert chr_info_1001.spd == 1
+
+    assert chr_info_1002 is None
+
+
 
 
 

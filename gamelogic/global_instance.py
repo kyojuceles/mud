@@ -1,5 +1,4 @@
 #global_instance.py
-from __future__ import annotations
 
 class GlobalInstance:
     '''
@@ -9,8 +8,11 @@ class GlobalInstance:
 
     @classmethod
     def set_global_instance_container(cls, ins: 'GlobalInstanceContainer'):
-        assert(isinstance(ins, GlobalInstanceContainer))
-        cls.__global_instance_container = ins
+        if ins is None:
+            cls.__global_instance_container = ins
+        else:
+            assert(isinstance(ins, GlobalInstanceContainer))
+            cls.__global_instance_container = ins
 
     @classmethod
     def get_event(cls) -> 'GameLogicProcessorEvent':

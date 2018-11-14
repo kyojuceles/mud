@@ -15,6 +15,8 @@ from .network import GocNetwork
 from .network import GocNetworkConsole
 from .network import GocNetworkPass
 from .network import NetworkConsoleEventBase
+from ..tables.character_table import CharacterTable
+from ..tables.level_table import LevelTable
 
 def create_object_base(
     name: str, id: int, hp: int, atk: int, armor: int, spd: int) -> GameObject:
@@ -34,10 +36,22 @@ def create_object_player(
     obj.add_component_with_key(GocNetworkBase, GocNetwork)
     return obj
 
-def create_object_npc(
-    name: str, id: int, hp: int, atk: int, armor: int, spd: int) -> GameObject:
-    '''npc GameObject를 생성하는 함수'''
+def create_object_npc_with_attribute(name: str, id: int,
+     hp: int, atk: int, armor: int, spd: int) -> GameObject:
+    '''npc GameObject를 능력치를 지정하여 생성하는 함수'''
     obj = create_object_base(name, id, hp, atk, armor, spd)
+    obj.add_component_with_key(GocNetworkBase, GocNetworkPass)
+    return obj
+
+def create_object_npc(id: int) -> GameObject:
+    '''npc GameObject를 생성하는 함수'''
+    chr_info = CharacterTable.get_chr_info(id)
+    if chr_info is None:
+        return None
+
+    obj = create_object_base(chr_info.name, id,
+            chr_info.max_hp, chr_info.atk,
+            chr_info.armor, chr_info.spd)
     obj.add_component_with_key(GocNetworkBase, GocNetworkPass)
     return obj
 

@@ -9,6 +9,8 @@ from .world.map import Map
 from .components.behaviour import GocBehaviour
 from .components import factory
 from .components.network import NetworkConsoleEventBase
+from .tables.character_table import CharacterTable
+from .tables.level_table import LevelTable
 
 
 class GameLogicProcessor(GlobalInstanceContainer):
@@ -24,6 +26,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
     def __init__(self,
      event: GameLogicProcessorEvent,
      console_player_event: NetworkConsoleEventBase):
+         # member initialize
         assert(isinstance(event, GameLogicProcessorEvent))
         assert(isinstance(console_player_event, NetworkConsoleEventBase))
         self._is_start: bool = False
@@ -32,7 +35,21 @@ class GameLogicProcessor(GlobalInstanceContainer):
         self._world: World = World()
         self._players: List[Optional[GameObject]] = {}
         self._update_timer: Timer = Timer(GameLogicProcessor.UPDATE_INTERVAL)
+        
+        # singleton classes initialize
         GlobalInstance.set_global_instance_container(self)
+        CharacterTable.initialize()
+        LevelTable.initialize()
+
+        # 테스트용 데이터 테이블 로드
+        CharacterTable.instance().init_test()
+        LevelTable.instance().init_test()
+    
+    def __del__(self):
+        # singleton classes deinitialize
+        LevelTable.deinitialize()
+        CharacterTable.deinitialize()
+        GlobalInstance.set_global_instance_container(None)
 
     def init_test(self):
         map1 = Map(GameLogicProcessor.ENTER_ROOM_ID, '광장 입구', '중앙에는 분수대가 있고 많은 사람들이 \
@@ -51,11 +68,11 @@ class GameLogicProcessor(GlobalInstanceContainer):
         self._world.add_map(map2)
         self._world.add_map(map3)
 
-        npc1 = factory.create_object_npc('경비병', 10000, 100, 1, 0, 1)
+        npc1 = factory.create_object_npc(1000)
         self._world.add_npc(npc1)
         npc1.get_component(GocBehaviour).enter_map('광장_00_02')
 
-        npc2 = factory.create_object_npc('경비병', 10001, 100, 1, 0, 1)
+        npc2 = factory.create_object_npc(1001)
         self._world.add_npc(npc2)
         npc2.get_component(GocBehaviour).enter_map('광장_00_02')
 
