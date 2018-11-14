@@ -14,10 +14,14 @@ class GocEntity(Component):
     STATUS_BATTLE: int = 2
     STATUS_DEATH: int = 3
 
-    def __init__(self):
+    def __init__(self, is_player: bool):
         self._map = None
         self._target = None
         self._status = GocEntity.STATUS_IDLE
+        self._is_player = is_player
+
+    def is_player(self):
+        return self._is_player
 
     def get_status(self):
         return self._status
@@ -59,7 +63,7 @@ class GocEntity(Component):
         elif self._status == GocEntity.STATUS_BATTLE and \
              self.get_target() is not None:
             desc = self.make_name_title() + '이 ' + \
-            self.get_target().get_component(GocEntity)._make_name_title() + \
+            self.get_target().get_component(GocEntity).make_name_title() + \
             '를 공격중입니다.\n'
         else:
             desc = self.make_name_title() + '이 서 있습니다.\n'

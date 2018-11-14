@@ -121,10 +121,10 @@ class GameLogicProcessor(GlobalInstanceContainer):
 
             if self._is_console_player(id):
                 player = factory.create_console_object(
-                    '플레이어', self._console_player_event, 100, 10, 1, 1)
+                    '플레이어', self._console_player_event, 1000, 15, 1, 1)
             else:
                 player = factory.create_object_player(
-                    '플레이어', -1, 100, 10, 1, 1)
+                    '플레이어', -1, 1000, 15, 1, 1)
 
             self._world.add_player(player)
             self._players[id] = player
@@ -148,21 +148,25 @@ class GameLogicProcessor(GlobalInstanceContainer):
             self._event.event_output('잘못된 명령입니다.\n')
             return False
         
+        # 이동 처리
         if cmd in ('동', '서', '남', '북'):
             behaviour: GocBehaviour = player.get_component(GocBehaviour)
             behaviour.move_map(cmd)
             return True
 
+        # 공격 처리
         if cmd == '공격':
             behaviour: GocBehaviour = player.get_component(GocBehaviour)
             behaviour.start_battle(args[0])
             return True
 
+        # 맵 보기 처리
         if cmd == '본다':
             behaviour: GocBehaviour = player.get_component(GocBehaviour)
             behaviour.output_current_map_desc()
             return True
 
+        # 플레이어 상태 보기 처리
         if cmd == '상태':
             behaviour: GocBehaviour = player.get_component(GocBehaviour)
             behaviour.output_status()

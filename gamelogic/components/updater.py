@@ -5,6 +5,7 @@ from .attribute import GocAttribute
 from .behaviour import GocBehaviour
 from .entity import GocEntity
 from .network import GocNetworkBase
+from ..tables.character_table import CharacterTable
 
 class GocUpdater(GocUpdaterBase):
     '''
@@ -42,11 +43,18 @@ class GocUpdater(GocUpdaterBase):
         if target_attribute.is_die():
             self.get_component(GocNetworkBase).send('%s는 사망했다.\n' % target.get_name())
             target.get_component(GocNetworkBase).send('당신은 사망했습니다.\n')
-            
+
             target_entity.set_status(GocEntity.STATUS_DEATH)
             target_entity.set_target(None)
             entity.set_status(GocEntity.STATUS_IDLE)
             entity.set_target(None)
+
+            # 플레이어인 경우 경험치 획득.
+            if entity.is_player:
+                attribute: GocAttribute = self.get_component(GocAttribute)
+                gain_xp = CharacterTable.get_chr_info(target.get_id()).gain_xp
+                attribute.gain_xp(gain_xp)
+                self.get_component(GocNetworkBase).send('%d 경험치를 획득했습니다.\n' % gain_xp)
         
 
         
