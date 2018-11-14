@@ -6,9 +6,9 @@ from ..world.map import Map
 
 class GocEntity(Component):
 
-    STATUS_IDLE = 1
-    STATUS_BATTLE = 2
-    STATUS_DEATH = 3
+    STATUS_IDLE: int = 1
+    STATUS_BATTLE: int = 2
+    STATUS_DEATH: int = 3
 
     def __init__(self):
         self._map = None
@@ -18,36 +18,36 @@ class GocEntity(Component):
     def get_status(self):
         return self._status
 
-    def set_status(self, status):
+    def set_status(self, status: int):
         self._status = status
 
-    def set_map(self, map):
+    def set_map(self, map: Map):
         if map is None:
             self._map = None
         else:
             assert(isinstance(map, Map))
             self._map = weakref.ref(map)
 
-    def get_map(self):
+    def get_map(self) -> Map:
         if self._map is None:
             return None
         
         return self._map()
 
-    def set_target(self, target):
+    def set_target(self, target: GameObject):
         if target is None:
             self._target = None
         else:
             assert(isinstance(target, GameObject))
             self._target = weakref.ref(target)
 
-    def get_target(self):
+    def get_target(self) -> GameObject:
         if self._target is None:
             return None
 
         return self._target()
 
-    def get_status_desc(self):
+    def get_status_desc(self) -> str:
         desc = ''
 
         if self._status == GocEntity.STATUS_DEATH:
@@ -62,6 +62,6 @@ class GocEntity(Component):
 
         return desc
 
-    def make_name_title(self):
+    def make_name_title(self) -> str:
         return '[' + self.get_owner_name() + ']'
     

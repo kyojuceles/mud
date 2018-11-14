@@ -8,7 +8,7 @@ class Timer:
     is_signal()이 True를 리턴한 이후 초기화 되고 동작을 반복한다.
     interval의 단위는 1초이다.
     '''
-    def __init__(self, interval_second):
+    def __init__(self, interval_second: float):
         self._interval_second = interval_second
         self._start_time = time.time()
 

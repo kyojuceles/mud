@@ -1,7 +1,7 @@
 #world.py
 
 from ..components.gameobject import GameObject
-from ..components.updater import GocUpdater
+from ..components.updater_base import GocUpdaterBase
 from .map import Map
 
 '''
@@ -14,7 +14,7 @@ class World:
         self._players = {}
         self._objs = []
 
-    def add_player(self, player):
+    def add_player(self, player: GameObject) -> bool:
         assert(isinstance(player, GameObject))
 
         if player.get_name() in self._players:
@@ -24,17 +24,17 @@ class World:
         assert(self._add_object(player))
         return True
 
-    def get_player(self, name):
+    def get_player(self, name: str) -> GameObject:
         if name not in self._players:
             return None
 
         return self._players[name]
 
-    def add_npc(self, npc):
+    def add_npc(self, npc: GameObject):
         assert(isinstance(npc, GameObject))
         assert(self._add_object(npc))
         
-    def add_map(self, map):
+    def add_map(self, map: Map) -> bool:
         assert(isinstance(map, Map))
 
         if map.get_id() in self._maps:
@@ -43,7 +43,7 @@ class World:
         self._maps[map.get_id()] = map
         return True
 
-    def get_map(self, id):
+    def get_map(self, id: str) -> Map:
         if id not in self._maps:
             return None
 
@@ -54,18 +54,18 @@ class World:
             map.update()
 
         for obj in self._objs:
-            updater = obj.get_component(GocUpdater)
+            updater: GocUpdaterBase = obj.get_component(GocUpdaterBase)
             if updater is not None:
                 updater.update()
 
-    def _add_object(self, obj):
+    def _add_object(self, obj: GameObject) -> bool:
         if obj in self._objs:
             return False
 
         self._objs.append(obj)
         return True
 
-    def _del_object(self, obj):
+    def _del_object(self, obj: GameObject) -> bool:
         if obj not in self._objs:
             return False
 

@@ -1,18 +1,20 @@
+from __future__ import annotations
+
 # GameLogic내에서 사용되는 글로벌 instance를 리턴하는 클래스
 class GlobalInstance:
-    __global_instance_container = None
+    __global_instance_container: 'GlobalInstanceContainer' = None
 
     @classmethod
-    def set_global_instance_container(cls, ins):
+    def set_global_instance_container(cls, ins: 'GlobalInstanceContainer'):
         assert(isinstance(ins, GlobalInstanceContainer))
         cls.__global_instance_container = ins
 
     @classmethod
-    def get_event(cls):
+    def get_event(cls) -> 'GameLogicProcessorEvent':
         return cls.__global_instance_container.get_event()
 
     @classmethod
-    def get_world(cls):
+    def get_world(cls) -> 'World':
         return cls.__global_instance_container.get_world()
 
 '''
@@ -32,6 +34,6 @@ class GlobalInstanceContainer:
 #Game Logic의 이벤트를 받아오는 클래스
 class GameLogicProcessorEvent:
     
-    def event_output(self, output):
+    def event_output(self, output: str):
         raise NotImplementedError
         

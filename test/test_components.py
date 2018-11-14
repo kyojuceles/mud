@@ -1,6 +1,7 @@
+import typing
 from ..gamelogic.components.attribute import GocAttribute
 from ..gamelogic.components.behaviour import GocBehaviour
-from ..gamelogic.components.updater import GocUpdater
+from ..gamelogic.components.updater import GocUpdaterBase
 from ..gamelogic.components import factory
 from ..gamelogic.world.world import World
 from ..gamelogic.world.map   import Map
@@ -14,10 +15,10 @@ def test_has_components_with_create_hero():
     hero = factory.create_object_npc('hero', -1, 100, 10, 1, 1)
     assert hero.has_component(GocAttribute)
     assert hero.has_component(GocBehaviour)
-    assert hero.has_component(GocUpdater)
+    assert hero.has_component(GocUpdaterBase)
     assert hero.get_name() == 'hero'
 
-    attribute = hero.get_component(GocAttribute)
+    attribute: GocAttribute = hero.get_component(GocAttribute)
     assert attribute.hp == 100
     assert attribute.atk == 10
     assert attribute.armor == 1
@@ -70,7 +71,7 @@ def test_move_with_player():
 
     processor.dispatch_message(GameLogicProcessor.CONSOLE_PLAYER_ID, '접속')
     player = processor.get_player(GameLogicProcessor.CONSOLE_PLAYER_ID)
-    entity = player.get_component(GocEntity)
+    entity: GocEntity = player.get_component(GocEntity)
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == GameLogicProcessor.ENTER_ROOM_ID
@@ -203,15 +204,14 @@ def test_start_battle_with_behaviour():
     assert target.get_component(GocEntity).get_status() == GocEntity.STATUS_IDLE
 
     for _ in range(0, 10):
-        attacker.get_component(GocUpdater).update()
-        target.get_component(GocUpdater).update()
+        attacker.get_component(GocUpdaterBase).update()
+        target.get_component(GocUpdaterBase).update()
 
     assert attacker.get_component(GocEntity).get_status() == GocEntity.STATUS_BATTLE
     assert target.get_component(GocEntity).get_status() == GocEntity.STATUS_BATTLE        
     
     assert attacker.get_component(GocAttribute).hp == 10
     assert target.get_component(GocAttribute).hp == 10
-
 
 
 

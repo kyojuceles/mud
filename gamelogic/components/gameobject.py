@@ -1,36 +1,39 @@
+from __future__ import annotations
+from typing import List, Optional
+
 '''
 GameObject
 이름을 가지고 컨테이너를 담을 수 있는 클래스
 '''
 class GameObject:
-    def __init__(self, name, id = -1):
+    def __init__(self, name: str, id: int = -1):
         self._name = name
         self._id = id
         self._components = {}
 
-    def add_component(self, cls, *args):
+    def add_component(self, cls, *args) -> Component:
         return self.add_component_with_key(cls, cls, *args)
 
-    def add_component_with_key(self, key_cls, cls, *args):
+    def add_component_with_key(self, key_cls, cls, *args) -> Component:
         assert(issubclass(key_cls, Component))
         component = cls(*args)
         component.set_owner(self)
         self._components[key_cls] = component
         return component
 
-    def get_component(self, cls):
+    def get_component(self, cls) -> Component:
         return self._components.get(cls)
 
-    def has_component(self, cls):
+    def has_component(self, cls) -> bool:
         return cls in self._components
 
-    def get_components(self):
+    def get_components(self) -> List[Optional[Component]]:
         return self._components.values()
 
-    def get_name(self):
+    def get_name(self) -> str:
         return self._name
     
-    def get_id(self):
+    def get_id(self) -> int:
         return self._id
 
 '''
@@ -41,22 +44,22 @@ GameObject에 포함되어 기능을 수행하는 클래스.
 class Component:
 
     def __init__(self):
-        self.owner = None
+        self.owner: GameObject = None
 
-    def get_owner_name(self):
+    def get_owner_name(self) -> str:
         return self.owner.get_name() if self.has_owner() else ''
 
-    def set_owner(self, owner):
+    def set_owner(self, owner: GameObject):
         self.owner = owner
 
-    def get_owner(self):
+    def get_owner(self) -> GameObject:
         return self.owner
 
-    def has_owner(self):
+    def has_owner(self) -> bool:
         return True if self.owner is not None else False
 
-    def get_component(self, cls_name):
-        return self.owner.get_component(cls_name) if self.has_owner() else None
+    def get_component(self, cls) -> Component:
+        return self.owner.get_component(cls) if self.has_owner() else None
 
-    def has_component(self, cls_name):
-        return self.owner.has_component(cls_name) if self.has_owner() else False
+    def has_component(self, cls) -> bool:
+        return self.owner.has_component(cls) if self.has_owner() else False

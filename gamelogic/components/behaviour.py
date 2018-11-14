@@ -1,13 +1,15 @@
+from .gameobject import GameObject
 from .gameobject import Component
 from .entity import GocEntity
 from .attribute import GocAttribute
 from ..world.map import Map
+from ..world.world import World
 from ..global_instance import GlobalInstance
 from .network import GocNetworkBase
 
 class GocBehaviour(Component):
 
-    def start_battle(self, target_name):
+    def start_battle(self, target_name: str) -> bool:
         actor_entity: GocEntity = self.get_component(GocEntity)
         current_map = actor_entity.get_map()
         if current_map is None:
@@ -18,7 +20,7 @@ class GocBehaviour(Component):
             self.get_component(GocNetworkBase).send('대상이 존재하지 않습니다.\n')
             return False
 
-        target_entity = target.get_component(GocEntity)
+        target_entity: GocEntity = target.get_component(GocEntity)
 
         if actor_entity.get_status() != GocEntity.STATUS_IDLE or \
            target_entity.get_status() == GocEntity.STATUS_DEATH:
@@ -31,12 +33,12 @@ class GocBehaviour(Component):
         return True
 
 
-    def attack(self, target):
+    def attack(self, target: GameObject):
         if not target.has_component(GocBehaviour):
             return
 
-        actor_attribute = self.get_component(GocAttribute)
-        target_attribute = target.get_component(GocAttribute)
+        actor_attribute: GocAttribute = self.get_component(GocAttribute)
+        target_attribute: GocAttribute = target.get_component(GocAttribute)
         dmg = actor_attribute.atk - target_attribute.armor
         dmg = max(dmg, 0)
         target_attribute.hp = max(target_attribute.hp - dmg, 0)
@@ -50,13 +52,13 @@ class GocBehaviour(Component):
         (self.get_owner_name(), dmg, target_attribute.hp))
 
         # 대상이 IDLE 상태에서 공격을 당하면 반격을 한다.
-        target_entity = target.get_component(GocEntity)
+        target_entity: GocEntity = target.get_component(GocEntity)
         if target_entity.get_status() != GocEntity.STATUS_BATTLE:
             target_entity.set_status(GocEntity.STATUS_BATTLE)
             target_entity.set_target(self.get_owner())
 
 
-    def enter_map(self, map_id):
+    def enter_map(self, map_id: str) -> bool:
         if not self.has_component(GocEntity):
             return False
 
@@ -68,17 +70,17 @@ class GocBehaviour(Component):
         if not map.enter_map(self.get_owner()):
             return False
 
-        entity = self.get_component(GocEntity)
+        entity: GocEntity = self.get_component(GocEntity)
         entity.set_map(map)
         self.get_component(GocNetworkBase).send(map.get_name() + '으로 들어갑니다.\n')
         self.output_current_map_desc()
         return True
 
-    def move_map(self, dest):
+    def move_map(self, dest: str) -> bool:
         if not self.has_component(GocEntity):
             return False
 
-        entity = self.get_component(GocEntity)
+        entity: GocEntity = self.get_component(GocEntity)
         current_map = entity.get_map()
         if current_map is None:
             return False
@@ -97,10 +99,10 @@ class GocBehaviour(Component):
         return True
 
     def output_current_map_desc(self):
-        entity = self.get_component(GocEntity)
+        entity: GocEntity = self.get_component(GocEntity)
         current_map = entity.get_map()
         if current_map is None:
-            return ''
+            return
 
         current_map_desc = current_map.get_desc()
         objs = current_map.get_object_list()
@@ -110,8 +112,8 @@ class GocBehaviour(Component):
         self.get_component(GocNetworkBase).send(current_map_desc)
 
     def output_status(self):
-        entity = self.get_component(GocEntity)
-        attribute = self.get_component(GocAttribute)
+        entity: GocEntity = self.get_component(GocEntity)
+        attribute: GocAttribute = self.get_component(GocAttribute)
         status_desc = entity.make_name_title() + '\n'
         status_desc += entity.get_status_desc()
         status_desc += attribute.get_status_desc()

@@ -1,6 +1,8 @@
+from typing import List, Tuple, Optional
 from .global_instance import GlobalInstance
 from .global_instance import GlobalInstanceContainer
 from .global_instance import GameLogicProcessorEvent
+from .components.gameobject import GameObject
 from .utils.timer import Timer
 from .world.world import World
 from .world.map import Map
@@ -19,15 +21,17 @@ class GameLogicProcessor(GlobalInstanceContainer):
     CONSOLE_PLAYER_ID = -1
     UPDATE_INTERVAL = 1
      
-    def __init__(self, event, console_player_event):
+    def __init__(self,
+     event: GameLogicProcessorEvent,
+     console_player_event: NetworkConsoleEventBase):
         assert(isinstance(event, GameLogicProcessorEvent))
         assert(isinstance(console_player_event, NetworkConsoleEventBase))
-        self._is_start = False
-        self._event = event
-        self._console_player_event = console_player_event
-        self._world = World()
-        self._players = {}
-        self._update_timer = Timer(GameLogicProcessor.UPDATE_INTERVAL)
+        self._is_start: bool = False
+        self._event: GameLogicProcessorEvent = event
+        self._console_player_event: NetworkConsoleEventBase = console_player_event
+        self._world: World = World()
+        self._players: List[Optional[GameObject]] = {}
+        self._update_timer: Timer = Timer(GameLogicProcessor.UPDATE_INTERVAL)
         GlobalInstance.set_global_instance_container(self)
 
     def init_test(self):
@@ -70,22 +74,22 @@ class GameLogicProcessor(GlobalInstanceContainer):
         if self._update_timer.is_signal():
             self._world.update()
 
-    def get_player(self, id):
+    def get_player(self, id: str) -> GameObject:
         return self._players.get(id)
 
-    def get_event(self):
+    def get_event(self) -> GameLogicProcessorEvent:
         return self._event
 
-    def get_world(self):
+    def get_world(self) -> World:
         return self._world
     
-    def dispatch_message(self, id, msg):
+    def dispatch_message(self, id: int, msg: str) -> bool:
         if not self._is_login(id):
             return self._dispatch_message_before_login(id, msg)
         
         return self._dispatch_message_after_login(id, msg)
 
-    def _dispatch_message_before_login(self, id, msg):
+    def _dispatch_message_before_login(self, id: int, msg: str) -> bool:
         ret, cmd, args = Parser.cmd_parse(msg)
 
         if not ret:
@@ -113,10 +117,10 @@ class GameLogicProcessor(GlobalInstanceContainer):
         self._event.event_output('잘못된 명령입니다.\n')
         return False
 
-    def _is_console_player(self, id):
+    def _is_console_player(self, id: int):
         return id == GameLogicProcessor.CONSOLE_PLAYER_ID
 
-    def _dispatch_message_after_login(self, id, msg):
+    def _dispatch_message_after_login(self, id: int, msg: str) -> bool:
         ret, cmd, args = Parser.cmd_parse(msg)
 
         player = self.get_player(id)
@@ -128,36 +132,36 @@ class GameLogicProcessor(GlobalInstanceContainer):
             return False
         
         if cmd in ('동', '서', '남', '북'):
-            behaviour = player.get_component(GocBehaviour)
+            behaviour: GocBehaviour = player.get_component(GocBehaviour)
             behaviour.move_map(cmd)
             return True
 
         if cmd == '공격':
-            behaviour = player.get_component(GocBehaviour)
+            behaviour: GocBehaviour = player.get_component(GocBehaviour)
             behaviour.start_battle(args[0])
             return True
 
         if cmd == '본다':
-            behaviour = player.get_component(GocBehaviour)
+            behaviour: GocBehaviour = player.get_component(GocBehaviour)
             behaviour.output_current_map_desc()
             return True
 
         if cmd == '상태':
-            behaviour = player.get_component(GocBehaviour)
+            behaviour: GocBehaviour = player.get_component(GocBehaviour)
             behaviour.output_status()
             return True
 
         self._event.event_output('잘못된 명령입니다.\n')
         return False
 
-    def _is_login(self, id):
+    def _is_login(self, id: int) -> bool:
         return id in self._players
 
 class Parser:
     arg_infos_list = {'공격': ['str']}
 
     @staticmethod
-    def cmd_parse(msg):
+    def cmd_parse(msg: str):
         """
         입력받은 msg 파싱해서 형식에 맞는 cmd와 args를 리턴한다.
         input_string이 적절하지 않으면 False를 리턴한다.
@@ -177,7 +181,8 @@ class Parser:
         return ret, cmd, args
 
     @staticmethod
-    def _arg_parse(arg_string, arg_infos):
+    def _arg_parse(arg_string: str,
+         arg_infos: List[Optional[str]]):
         '''arg_infos를 기반으로 arg_string을 파싱하여 인자를 리턴한다.'''
         assert(isinstance(arg_string, str))
         assert(isinstance(arg_infos, list))
@@ -203,7 +208,7 @@ class Parser:
         return True, tuple(args)
     
     @staticmethod
-    def _pop_word(input_string):
+    def _pop_word(input_string: str):
         '''명령의 첫번째 단어와 이를 제외한 문장을 리턴한다.'''
         lstrip_string = input_string.lstrip()
         left_index = lstrip_string.find(' ')

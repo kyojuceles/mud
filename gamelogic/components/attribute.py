@@ -1,11 +1,11 @@
 from .gameobject import Component
 
 class GocAttribute(Component):
-    
-    def __init__(self, hp, atk, armor, spd):
+
+    def __init__(self, hp: int, atk: int, armor: int, spd: int):
         self.set_attribute(hp, hp, atk, armor, spd)
 
-    def set_attribute(self, max_hp, hp, atk, armor, spd):
+    def set_attribute(self, max_hp: int, hp: int, atk: int, armor:int , spd: int):
         self.max_hp = max_hp
         self.hp = hp
         self.atk = atk

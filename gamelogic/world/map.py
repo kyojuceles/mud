@@ -1,6 +1,8 @@
 # map.py
 
+from __future__ import annotations
 import weakref
+from typing import List, Optional
 from ..components.gameobject import GameObject
 
 class Map:
@@ -8,20 +10,20 @@ class Map:
     방 하나를 담당하는 클래스
     """
     
-    def __init__(self, id, name = '', desc = ''):
+    def __init__(self, id: str, name: str = '', desc: str = ''):
         self._id = id
         self._visitable_maps = weakref.WeakValueDictionary()
         self._name = name
         self._desc = desc
         self._objs = []
 
-    def get_id(self):
+    def get_id(self) -> str:
         return self._id
         
-    def get_name(self):
+    def get_name(self) -> str:
         return self._name
     
-    def get_desc(self):
+    def get_desc(self) -> str:
         output_string = '[' + self.get_name() + ']'
         output_string += '\n'
         output_string += self._desc
@@ -34,7 +36,7 @@ class Map:
 
         return output_string
 
-    def add_visitable_map(self, dest, map):
+    def add_visitable_map(self, dest: str, map: Map) -> bool:
         assert(isinstance(map, Map))
         if dest in self._visitable_maps:
             return False
@@ -42,19 +44,19 @@ class Map:
         self._visitable_maps[dest] = map
         return True
 
-    def get_visitable_map(self, dest):
+    def get_visitable_map(self, dest: str):
         if dest not in self._visitable_maps:
             return None
 
         return self._visitable_maps[dest]
 
-    def get_visitable_map_list(self):
+    def get_visitable_map_list(self) -> List[Optional[tuple]]:
         return [(item[0], item[1].get_id()) for item in self._visitable_maps.items()]
             
     def update(self):
         pass
 
-    def enter_map(self, obj):
+    def enter_map(self, obj: GameObject) -> bool:
         if obj in self._objs:
             return False
 
@@ -62,7 +64,7 @@ class Map:
         self._objs.sort(key = lambda obj : obj.get_name())
         return True
 
-    def leave_map(self, obj):
+    def leave_map(self, obj: GameObject) -> bool:
         if obj not in self._objs:
             return False
 
@@ -70,7 +72,7 @@ class Map:
         self._objs.sort(key = lambda obj : obj.get_name())
         return True
 
-    def get_object(self, name):
+    def get_object(self, name: str) -> GameObject:
         '''
         이름으로 오브젝트를 얻어온다.
         만약 앞에 숫자. 형태가 나오면 숫자 순서에 있는 오브젝트를 얻어온다.
@@ -88,7 +90,7 @@ class Map:
         
         return obj_list[order]
 
-    def get_object_list(self):
+    def get_object_list(self) -> List[Optional[GameObject]]:
         return tuple(self._objs)
 
 
