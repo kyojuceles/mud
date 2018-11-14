@@ -1,5 +1,4 @@
-# 주기적으로 update가 호출되는 component
-
+#updater.py
 from ..global_instance import GlobalInstance
 from .updater_base import GocUpdaterBase
 from .attribute import GocAttribute
@@ -8,7 +7,9 @@ from .entity import GocEntity
 from .network import GocNetworkBase
 
 class GocUpdater(GocUpdaterBase):
-
+    '''
+    주기적으로 처리해야 할 기능들을 담당하는 컴포넌트
+    '''
     def update(self):
         entity: GocEntity = self.get_component(GocEntity)
         if entity is None:

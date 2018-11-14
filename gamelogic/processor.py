@@ -10,13 +10,13 @@ from .components.behaviour import GocBehaviour
 from .components import factory
 from .components.network import NetworkConsoleEventBase
 
-'''
-Game Logic을 처리하는 클래스
 
-1. 입력을 받아서 처리하고 결과를 이벤트 클래스에 알려준다.
-2. GameLogicProcessor.get_instance()로 글로벌 instance를 얻을 수 있다.
-'''
 class GameLogicProcessor(GlobalInstanceContainer):
+    '''
+    Game Logic을 처리하는 클래스.
+    1. 입력을 받아서 처리하고 결과를 이벤트 클래스에 알려준다.
+    2. GameLogicProcessor.get_instance()로 글로벌 instance를 얻을 수 있다.
+    ''' 
     ENTER_ROOM_ID = '광장_00_00'
     CONSOLE_PLAYER_ID = -1
     UPDATE_INTERVAL = 1

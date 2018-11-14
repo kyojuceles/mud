@@ -1,3 +1,4 @@
+#behaviour.py
 from .gameobject import GameObject
 from .gameobject import Component
 from .entity import GocEntity
@@ -8,7 +9,10 @@ from ..global_instance import GlobalInstance
 from .network import GocNetworkBase
 
 class GocBehaviour(Component):
-
+    '''
+    캐릭터들의 이동, 공격, 상태, 맵 보기 등의 기능들을 처리하는 컴포넌트.
+    캐릭터들의 행동들은 대부분 이 컴포넌트를 통해서 시작됨
+    '''
     def start_battle(self, target_name: str) -> bool:
         actor_entity: GocEntity = self.get_component(GocEntity)
         current_map = actor_entity.get_map()

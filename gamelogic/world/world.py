@@ -4,11 +4,10 @@ from ..components.gameobject import GameObject
 from ..components.updater_base import GocUpdaterBase
 from .map import Map
 
-'''
-map, obj를 관리하는 클래스
-'''
 class World:
-
+    '''
+    map, obj를 관리하는 클래스
+    '''
     def __init__(self):
         self._maps = {}
         self._players = {}

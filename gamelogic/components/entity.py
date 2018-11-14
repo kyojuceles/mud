@@ -1,11 +1,15 @@
+#entity.py
 import weakref
-
 from .gameobject import GameObject
 from .gameobject import Component
 from ..world.map import Map
 
-class GocEntity(Component):
 
+
+class GocEntity(Component):
+    '''
+    캐릭터의 상태, 위치와 같은 정보를 나타내는 컴포넌트.
+    '''
     STATUS_IDLE: int = 1
     STATUS_BATTLE: int = 2
     STATUS_DEATH: int = 3

@@ -1,11 +1,13 @@
+#gameobject.py
 from __future__ import annotations
 from typing import List, Optional
 
-'''
-GameObject
-이름을 가지고 컨테이너를 담을 수 있는 클래스
-'''
+
 class GameObject:
+    '''
+    GameObject
+    이름을 가지고 컨테이너를 담을 수 있는 클래스
+    ''' 
     def __init__(self, name: str, id: int = -1):
         self._name = name
         self._id = id
@@ -36,13 +38,13 @@ class GameObject:
     def get_id(self) -> int:
         return self._id
 
-'''
-Component
-GameObject에 포함되어 기능을 수행하는 클래스.
-자신을 소유자의 객체를 얻을 수 있고, 소유자가 가진 Component를 얻을 수 있다.
-'''
-class Component:
 
+class Component:
+    '''
+    Component
+    GameObject에 포함되어 기능을 수행하는 클래스.
+    자신을 소유자의 객체를 얻을 수 있고, 소유자가 가진 Component를 얻을 수 있다.
+    '''
     def __init__(self):
         self.owner: GameObject = None
 

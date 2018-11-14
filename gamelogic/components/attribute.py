@@ -1,7 +1,10 @@
+#attribyte.py
 from .gameobject import Component
 
 class GocAttribute(Component):
-
+    '''
+    캐릭터의 능력치를 나타내는 클래스
+    '''
     def __init__(self, hp: int, atk: int, armor: int, spd: int):
         self.set_attribute(hp, hp, atk, armor, spd)
 
