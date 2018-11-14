@@ -43,7 +43,6 @@ class GocUpdater(GocUpdaterBase):
         if target_attribute.is_die():
             self.get_component(GocNetworkBase).send('%s는 사망했다.\n' % target.get_name())
             target.get_component(GocNetworkBase).send('당신은 사망했습니다.\n')
-
             target_entity.set_status(GocEntity.STATUS_DEATH)
             target_entity.set_target(None)
             entity.set_status(GocEntity.STATUS_IDLE)
@@ -53,8 +52,14 @@ class GocUpdater(GocUpdaterBase):
             if entity.is_player:
                 attribute: GocAttribute = self.get_component(GocAttribute)
                 gain_xp = CharacterTable.get_chr_info(target.get_id()).gain_xp
-                attribute.gain_xp(gain_xp)
+                is_level_up = attribute.gain_xp(gain_xp)
                 self.get_component(GocNetworkBase).send('%d 경험치를 획득했습니다.\n' % gain_xp)
+                # 레벨업 처리.
+                if is_level_up:
+                     self.get_component(GocNetworkBase).send('레벨이 상승했습니다. 축하합니다!\n')
+
+
+                
         
 
         

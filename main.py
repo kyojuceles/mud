@@ -24,7 +24,7 @@ def console_command_process(command):
     if command == '종료':
         return False
     
-    game_logic_processor.dispatch_message(GameLogicProcessor.CONSOLE_PLAYER_ID, command)
+    game_logic_processor.dispatch_message(factory.CONSOLE_PLAYER_ID, command)
     return True
 
 while(True):

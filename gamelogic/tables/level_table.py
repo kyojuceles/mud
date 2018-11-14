@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 class LevelInfo:
-    def __init__(self, need_xp: int, max_hp: int, atk: int, armor: int, spd: int):
-        self.need_xp = need_xp
+    def __init__(self, next_xp: int, max_hp: int, atk: int, armor: int, spd: int):
+        self.next_xp = next_xp
         self.max_hp = max_hp
         self.atk = atk
         self.armor = armor
@@ -44,9 +44,9 @@ class LevelTable:
         self.add_row(5, 500, 300, 18, 1, 1)
 
     def add_row(self,
-     lv: int, need_xp: int, max_hp: int,
+     lv: int, next_xp: int, max_hp: int,
      atk: int, armor: int, spd: int) -> bool:
-        lv_info = LevelInfo(need_xp, max_hp, atk, armor, spd)
+        lv_info = LevelInfo(next_xp, max_hp, atk, armor, spd)
 
         if lv in self._table:
             return False

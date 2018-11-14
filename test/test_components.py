@@ -71,8 +71,8 @@ def test_move_with_player():
     world.add_map(map2)
     world.add_map(map3)
 
-    processor.dispatch_message(GameLogicProcessor.CONSOLE_PLAYER_ID, '접속')
-    player = processor.get_player(GameLogicProcessor.CONSOLE_PLAYER_ID)
+    processor.dispatch_message(factory.CONSOLE_PLAYER_ID, '접속')
+    player = processor.get_player(factory.CONSOLE_PLAYER_ID)
     entity: GocEntity = player.get_component(GocEntity)
     current_map = entity.get_map()
     assert current_map is not None
@@ -80,29 +80,29 @@ def test_move_with_player():
     assert player == current_map.get_object(player.get_name())
 
     prev_map = current_map
-    processor.dispatch_message(GameLogicProcessor.CONSOLE_PLAYER_ID, '남')
+    processor.dispatch_message(factory.CONSOLE_PLAYER_ID, '남')
     current_map = entity.get_map()
     assert prev_map.get_object(player.get_name()) == None
     assert current_map is not None
     assert current_map.get_id() == '광장_00_01'
     assert player == current_map.get_object(player.get_name())
     
-    processor.dispatch_message(GameLogicProcessor.CONSOLE_PLAYER_ID, '하늘')
+    processor.dispatch_message(factory.CONSOLE_PLAYER_ID, '하늘')
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_01'
 
-    processor.dispatch_message(GameLogicProcessor.CONSOLE_PLAYER_ID, '북')
+    processor.dispatch_message(factory.CONSOLE_PLAYER_ID, '북')
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_00'
 
-    processor.dispatch_message(GameLogicProcessor.CONSOLE_PLAYER_ID, '북')
+    processor.dispatch_message(factory.CONSOLE_PLAYER_ID, '북')
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_02'
 
-    processor.dispatch_message(GameLogicProcessor.CONSOLE_PLAYER_ID, '남')
+    processor.dispatch_message(factory.CONSOLE_PLAYER_ID, '남')
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_00'

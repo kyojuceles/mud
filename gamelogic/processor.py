@@ -20,7 +20,6 @@ class GameLogicProcessor(GlobalInstanceContainer):
     2. GameLogicProcessor.get_instance()로 글로벌 instance를 얻을 수 있다.
     ''' 
     ENTER_ROOM_ID = '광장_00_00'
-    CONSOLE_PLAYER_ID = -1
     UPDATE_INTERVAL = 1
      
     def __init__(self,
@@ -121,10 +120,10 @@ class GameLogicProcessor(GlobalInstanceContainer):
 
             if self._is_console_player(id):
                 player = factory.create_console_object(
-                    '플레이어', self._console_player_event, 1000, 15, 1, 1)
+                    '플레이어', self._console_player_event, 1, 0, 1000, 15, 1, 1)
             else:
                 player = factory.create_object_player(
-                    '플레이어', -1, 1000, 15, 1, 1)
+                    '플레이어', 1, 0, -1, 1000, 15, 1, 1)
 
             self._world.add_player(player)
             self._players[id] = player
@@ -135,7 +134,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
         return False
 
     def _is_console_player(self, id: int):
-        return id == GameLogicProcessor.CONSOLE_PLAYER_ID
+        return id == factory.CONSOLE_PLAYER_ID
 
     def _dispatch_message_after_login(self, id: int, msg: str) -> bool:
         ret, cmd, args = Parser.cmd_parse(msg)
