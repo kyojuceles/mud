@@ -3,7 +3,6 @@
 from .gameobject import Component
 
 class GocNetworkBase(Component):
-    name = 'GocNetworkBase'
     
     def __init__(self):
         pass

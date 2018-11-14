@@ -1,11 +1,10 @@
 import weakref
 
+from .gameobject import GameObject
 from .gameobject import Component
-from ..utils import instance_checker
 from ..world.map import Map
 
 class GocEntity(Component):
-    name = 'GocEntity'
 
     STATUS_IDLE = 1
     STATUS_BATTLE = 2
@@ -26,7 +25,7 @@ class GocEntity(Component):
         if map is None:
             self._map = None
         else:
-            assert(instance_checker.is_map(map))
+            assert(isinstance(map, Map))
             self._map = weakref.ref(map)
 
     def get_map(self):
@@ -39,7 +38,7 @@ class GocEntity(Component):
         if target is None:
             self._target = None
         else:
-            assert(instance_checker.is_gameobject(target))
+            assert(isinstance(target, GameObject))
             self._target = weakref.ref(target)
 
     def get_target(self):
@@ -56,7 +55,7 @@ class GocEntity(Component):
         elif self._status == GocEntity.STATUS_BATTLE and \
              self.get_target() is not None:
             desc = self.make_name_title() + '이 ' + \
-            self.get_target().get_component('GocEntity')._make_name_title() + \
+            self.get_target().get_component(GocEntity)._make_name_title() + \
             '를 공격중입니다.\n'
         else:
             desc = self.make_name_title() + '이 서 있습니다.\n'

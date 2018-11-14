@@ -9,17 +9,20 @@ class GameObject:
         self._components = {}
 
     def add_component(self, cls, *args):
-        assert(issubclass(cls, Component))
+        return self.add_component_with_key(cls, cls, *args)
+
+    def add_component_with_key(self, key_cls, cls, *args):
+        assert(issubclass(key_cls, Component))
         component = cls(*args)
         component.set_owner(self)
-        self._components[id(component.__class__.name)] = component
+        self._components[key_cls] = component
         return component
 
-    def get_component(self, cls_name):
-        return self._components.get(id(cls_name))
+    def get_component(self, cls):
+        return self._components.get(cls)
 
-    def has_component(self, cls_name):
-        return id(cls_name) in self._components
+    def has_component(self, cls):
+        return cls in self._components
 
     def get_components(self):
         return self._components.values()
@@ -30,14 +33,12 @@ class GameObject:
     def get_id(self):
         return self._id
 
-
 '''
 Component
 GameObject에 포함되어 기능을 수행하는 클래스.
 자신을 소유자의 객체를 얻을 수 있고, 소유자가 가진 Component를 얻을 수 있다.
 '''
 class Component:
-    name = 'Component'
 
     def __init__(self):
         self.owner = None

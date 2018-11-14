@@ -2,14 +2,15 @@
 
 from ..global_instance import GlobalInstance
 from .gameobject import Component
+from .attribute import GocAttribute
+from .behaviour import GocBehaviour
 from .entity import GocEntity
 from .network import GocNetworkBase
 
 class GocUpdater(Component):
-    name = 'GocUpdater'
 
     def update(self):
-        entity = self.get_component('GocEntity')
+        entity = self.get_component(GocEntity)
         if entity is None:
             return
 
@@ -18,7 +19,7 @@ class GocUpdater(Component):
             self._status_battle_update()
 
     def _status_battle_update(self):
-        entity = self.get_component('GocEntity')
+        entity = self.get_component(GocEntity)
         target = entity.get_target()
 
         #타겟이 존재하지 않거나 사망상태이면 전투를 종료한다.
@@ -26,19 +27,19 @@ class GocUpdater(Component):
             entity.set_status(GocEntity.STATUS_IDLE)
             return
 
-        target_entity = target.get_component('GocEntity')
+        target_entity = target.get_component(GocEntity)
         if target_entity.get_status() == GocEntity.STATUS_DEATH:
             entity.set_status(GocEntity.STATUS_IDLE)
             entity.set_target(None)
             return
         
-        behaviour = self.get_component('GocBehaviour')
+        behaviour = self.get_component(GocBehaviour)
         behaviour.attack(target)
 
         #사망처리
-        target_attribute = target.get_component('GocAttribute')
+        target_attribute = target.get_component(GocAttribute)
         if target_attribute.is_die():
-            self.get_component('GocNetworkBase').send('%s는 사망했다.\n' % target.get_name())
+            self.get_component(GocNetworkBase).send('%s는 사망했다.\n' % target.get_name())
             target_entity.set_status(GocEntity.STATUS_DEATH)
             target_entity.set_target(None)
             entity.set_status(GocEntity.STATUS_IDLE)

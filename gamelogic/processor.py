@@ -1,12 +1,11 @@
 from .global_instance import GlobalInstance
 from .global_instance import GlobalInstanceContainer
 from .global_instance import GameLogicProcessorEvent
-from .utils import instance_checker
 from .utils.timer import Timer
 from .world.world import World
 from .world.map import Map
-from .components import factory
 from .components.behaviour import GocBehaviour
+from .components import factory
 from .components.network import NetworkConsoleEventBase
 
 '''
@@ -50,11 +49,11 @@ class GameLogicProcessor(GlobalInstanceContainer):
 
         npc1 = factory.create_object_npc('경비병', 10000, 100, 1, 0, 1)
         self._world.add_npc(npc1)
-        npc1.get_component('GocBehaviour').enter_map('광장_00_02')
+        npc1.get_component(GocBehaviour).enter_map('광장_00_02')
 
         npc2 = factory.create_object_npc('경비병', 10001, 100, 1, 0, 1)
         self._world.add_npc(npc2)
-        npc2.get_component('GocBehaviour').enter_map('광장_00_02')
+        npc2.get_component(GocBehaviour).enter_map('광장_00_02')
 
     def start(self):
         self._is_start = True
@@ -108,7 +107,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
 
             self._world.add_player(player)
             self._players[id] = player
-            player.get_component('GocBehaviour').enter_map(GameLogicProcessor.ENTER_ROOM_ID)
+            player.get_component(GocBehaviour).enter_map(GameLogicProcessor.ENTER_ROOM_ID)
             return True
 
         self._event.event_output('잘못된 명령입니다.\n')
@@ -129,22 +128,22 @@ class GameLogicProcessor(GlobalInstanceContainer):
             return False
         
         if cmd in ('동', '서', '남', '북'):
-            behaviour = player.get_component('GocBehaviour')
+            behaviour = player.get_component(GocBehaviour)
             behaviour.move_map(cmd)
             return True
 
         if cmd == '공격':
-            behaviour = player.get_component('GocBehaviour')
+            behaviour = player.get_component(GocBehaviour)
             behaviour.start_battle(args[0])
             return True
 
         if cmd == '본다':
-            behaviour = player.get_component('GocBehaviour')
+            behaviour = player.get_component(GocBehaviour)
             behaviour.output_current_map_desc()
             return True
 
         if cmd == '상태':
-            behaviour = player.get_component('GocBehaviour')
+            behaviour = player.get_component(GocBehaviour)
             behaviour.output_status()
             return True
 

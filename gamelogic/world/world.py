@@ -1,6 +1,8 @@
 #world.py
 
-from ..utils import instance_checker
+from ..components.gameobject import GameObject
+from ..components.updater import GocUpdater
+from .map import Map
 
 '''
 map, obj를 관리하는 클래스
@@ -13,7 +15,7 @@ class World:
         self._objs = []
 
     def add_player(self, player):
-        assert(instance_checker.is_player(player))
+        assert(isinstance(player, GameObject))
 
         if player.get_name() in self._players:
             return False
@@ -29,11 +31,11 @@ class World:
         return self._players[name]
 
     def add_npc(self, npc):
-        assert(instance_checker.is_npc(npc))
+        assert(isinstance(npc, GameObject))
         assert(self._add_object(npc))
         
     def add_map(self, map):
-        assert(instance_checker.is_map(map))
+        assert(isinstance(map, Map))
 
         if map.get_id() in self._maps:
             return False
@@ -52,7 +54,7 @@ class World:
             map.update()
 
         for obj in self._objs:
-            updater = obj.get_component('GocUpdater')
+            updater = obj.get_component(GocUpdater)
             if updater is not None:
                 updater.update()
 

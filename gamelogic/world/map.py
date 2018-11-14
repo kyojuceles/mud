@@ -1,7 +1,7 @@
 # map.py
 
 import weakref
-from ..utils import instance_checker
+from ..components.gameobject import GameObject
 
 class Map:
     """
@@ -32,13 +32,10 @@ class Map:
         output_string += '.'.join(visitable_map)
         output_string += ']\n'
 
-        for obj in self._objs:
-            output_string += obj.get_component('GocEntity').get_status_desc()
-
         return output_string
 
     def add_visitable_map(self, dest, map):
-        assert(instance_checker.is_map(map))
+        assert(isinstance(map, Map))
         if dest in self._visitable_maps:
             return False
 
