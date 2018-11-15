@@ -21,6 +21,13 @@ class GocUpdater(GocUpdaterBase):
         if status == GocEntity.STATUS_BATTLE:
             self._status_battle_update()
 
+        self._reset_update()
+
+    def _reset_update(self):
+        '''매 턴마다 필요한 초기화를 하는 함수'''
+        entity: GocEntity = self.get_component(GocEntity)
+        entity.reset_flee()
+
     def _status_battle_update(self):
         entity: GocEntity = self.get_component(GocEntity)
         target = entity.get_target()
@@ -30,8 +37,15 @@ class GocUpdater(GocUpdaterBase):
             entity.set_status(GocEntity.STATUS_IDLE)
             return
 
+        #타겟이 같은방에 있지 않으면 전투를 종료한다.
         target_entity: GocEntity = target.get_component(GocEntity)
-        if target_entity.get_status() == GocEntity.STATUS_DEATH:
+        if target_entity.get_map() is not entity.get_map():
+            entity.set_status(GocEntity.STATUS_IDLE)
+            entity.set_target(None)
+            return       
+
+        #타겟이 사망했으면 전투를 종료한다.
+        if target_entity.is_die():
             entity.set_status(GocEntity.STATUS_IDLE)
             entity.set_target(None)
             return

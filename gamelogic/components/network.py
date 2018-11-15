@@ -1,6 +1,8 @@
 #network.py
 
 from .gameobject import Component
+from .entity import GocEntity
+from ..world.map import Map
 
 class GocNetworkBase(Component):
     ''' 
@@ -11,6 +13,18 @@ class GocNetworkBase(Component):
 
     def send(self, msg: str):
         raise NotImplementedError('You should implement Send method.')
+
+    def broadcast_in_map(self, msg: str, is_except_owner: bool = False):
+        entity: GocEntity = self.get_component(GocEntity)
+        owner = self.get_owner()
+        map = entity.get_map()
+        if map is not None:
+            objs = map.get_object_list()
+            for obj in objs:
+                if is_except_owner and obj == owner:
+                    continue
+                obj.get_component(GocNetworkBase).send(msg)
+                
 
 class GocNetwork(GocNetworkBase):
     ''' 

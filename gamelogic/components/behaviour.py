@@ -1,4 +1,5 @@
 #behaviour.py
+import random
 from .gameobject import GameObject
 from .gameobject import Component
 from .entity import GocEntity
@@ -53,7 +54,47 @@ class GocBehaviour(Component):
         
         return True
 
+    def flee(self) -> bool:
+        entity: GocEntity = self.get_component(GocEntity)
+        
+        #도망 가능한 상태인지 체크
+        if not entity.is_battle():
+            self.get_component(GocNetworkBase).send('전투중이 아닐때는 도망갈 수 없습니다.\n')
+            return False
 
+        #이번 턴에 도망을 시도 한적이 있으면 다음 턴까지는 도망을 시도할 수 없다.
+        if entity.is_try_flee():
+            return False
+
+        #맵에 도망칠수 있는 곳이 있는지 체크
+        current_map = entity.get_map()
+        can_flee_map_list = current_map.get_visitable_map_dest_list()
+        if not can_flee_map_list:
+            self.get_component(GocNetworkBase).send('도망갈 수 있는 곳이 없습니다.\n')
+            return False
+
+        entity.try_flee()
+
+        #50프로의 확률로 도망(임시)
+        random_number = random.random()
+        if random_number < 0.5:
+            self.get_component(GocNetworkBase).send('도망치려 했으나 실패했습니다.\n')
+            return False
+
+        #어느 맵으로 도망갈지 정함
+        flee_map_index = random.randrange(len(can_flee_map_list))
+        flee_map_dest = can_flee_map_list[flee_map_index]
+        entity.set_status(GocEntity.STATUS_IDLE)
+        if not self.move_map(flee_map_dest):
+            self.get_component(GocNetworkBase).send('도망치려 했으나 실패했습니다.\n')
+            return False
+
+        self.get_component(GocNetworkBase).broadcast_in_map(\
+         '%s가 [%s]쪽으로 도망쳤습니다.\n' % (entity.make_name_title(), flee_map_dest),
+         True)
+        self.get_component(GocNetworkBase).send('당신은 도망쳤습니다. 전투를 종료합니다.\n')
+        return True
+    
     def attack(self, target: GameObject):
         if not target.has_component(GocBehaviour):
             return

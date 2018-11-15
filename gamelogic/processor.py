@@ -145,28 +145,31 @@ class GameLogicProcessor(GlobalInstanceContainer):
             self._event.event_output('잘못된 명령입니다.\n')
             return False
         
+        behaviour: GocBehaviour = player.get_component(GocBehaviour)
+
         # 이동 처리
         if cmd in ('동', '서', '남', '북'):
-            behaviour: GocBehaviour = player.get_component(GocBehaviour)
             behaviour.move_map(cmd)
             return True
 
         # 공격 처리
         if cmd == '공격':
-            behaviour: GocBehaviour = player.get_component(GocBehaviour)
             behaviour.start_battle(args[0])
             return True
 
         # 맵 보기 처리
         if cmd == '본다':
-            behaviour: GocBehaviour = player.get_component(GocBehaviour)
             behaviour.output_current_map_desc()
             return True
 
         # 플레이어 상태 보기 처리
         if cmd == '상태':
-            behaviour: GocBehaviour = player.get_component(GocBehaviour)
             behaviour.output_status()
+            return True
+
+        # 도망 처리
+        if cmd == '도망':
+            behaviour.flee()
             return True
 
         self._event.event_output('잘못된 명령입니다.\n')

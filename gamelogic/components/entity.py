@@ -16,6 +16,7 @@ class GocEntity(Component):
         self._map = None
         self._target = None
         self._status = GocEntity.STATUS_IDLE
+        self._is_try_flee = False
 
     def get_status(self):
         return self._status
@@ -66,6 +67,15 @@ class GocEntity(Component):
 
     def make_name_title(self) -> str:
         return '[' + self.get_owner_name() + ']'
+
+    def is_try_flee(self) -> bool:
+        return self._is_try_flee
+
+    def try_flee(self):
+        self._is_try_flee = True
+
+    def reset_flee(self):
+        self._is_try_flee = False
 
     def is_die(self) -> bool:
         return self._status == GocEntity.STATUS_DEATH

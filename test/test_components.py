@@ -12,6 +12,7 @@ from ..gamelogic.components.entity import GocEntity
 from ..gamelogic.components.network import NetworkConsoleEventBase
 from ..gamelogic.tables.level_table import LevelTable
 from ..gamelogic.tables.character_table import CharacterTable
+from ..gamelogic.components.network import GocNetworkBase
 
 def test_has_components_with_create_hero():
     hero = factory.create_object_npc_with_attribute('hero', -1, 100, 10, 1, 1, 0)
@@ -198,6 +199,9 @@ def test_start_battle_with_behaviour():
     attacker.get_component(GocEntity).set_map(map)
     map.enter_map(attacker)
     map.enter_map(target)
+
+    attacker.get_component(GocEntity).set_map(map)
+    target.get_component(GocEntity).set_map(map)
     
     behaviour = attacker.get_component(GocBehaviour)
     behaviour.start_battle('방어자')
@@ -263,6 +267,9 @@ def test_data_tables():
 
     assert chr_info_1002 is None
 
+def test_just_call_method():
+    obj = factory.create_object_npc_with_attribute('플레이어', 0, 100, 10, 0, 0, 0)
+    obj.get_component(GocNetworkBase).broadcast_in_map('테스트')
 
 
 
