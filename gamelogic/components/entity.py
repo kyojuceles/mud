@@ -66,4 +66,13 @@ class GocEntity(Component):
 
     def make_name_title(self) -> str:
         return '[' + self.get_owner_name() + ']'
+
+    def is_die(self) -> bool:
+        return self._status == GocEntity.STATUS_DEATH
+
+    def is_battle(self) -> bool:
+        return self._status == GocEntity.STATUS_BATTLE
+
+    def is_idle(self) -> bool:
+        return self._status == GocEntity.STATUS_IDLE
     

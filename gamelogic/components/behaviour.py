@@ -27,9 +27,14 @@ class GocBehaviour(Component):
             return False
 
         #공격할 수 있는 상태인지 체크
-        if actor_entity.get_status() != GocEntity.STATUS_IDLE:
-            self.get_component(GocNetworkBase).send('공격을 할 수 있는 상태가 아닙니다.\n')
+        if actor_entity.is_die():
+            self.get_component(GocNetworkBase).send('사망한 상태에서는 공격을 할 수 없습니다.\n')
             return False
+
+        if actor_entity.is_battle():
+            self.get_component(GocNetworkBase).send('전투중에는 다른 대상을 공격할 수 없습니다.\n')
+            return False
+        ######################
         
         #대상이 적군인지 체크(아군이면 공격할 수 없다)
         team_attribute: GocTeamAttribute = self.get_component(GocTeamAttribute)
@@ -97,6 +102,16 @@ class GocBehaviour(Component):
             return False
 
         entity: GocEntity = self.get_component(GocEntity)
+        #이동 가능한 상태인지 체크
+        if entity.is_battle():
+            self.get_component(GocNetworkBase).send('전투중에는 이동할 수 없습니다.\n')
+            return False
+
+        if entity.is_die():
+            self.get_component(GocNetworkBase).send('사망중에는 이동할 수 없습니다.\n')
+            return False
+        #######################
+
         current_map = entity.get_map()
         if current_map is None:
             return False
