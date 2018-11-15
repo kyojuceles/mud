@@ -58,9 +58,9 @@ def console_command_process(command):
         current_client_info_index += 1
         if current_client_info_index >= client_count:
             current_client_info_index = 0
-            game_logic_processor.get_event().event_output(\
-                '%s로 캐릭터를 교체합니다.\n' % get_current_client_info().get_player().get_name())
-        
+
+        game_logic_processor.get_event().event_output(\
+            '%s로 캐릭터를 교체합니다.\n' % get_current_client_info().get_player().get_name())        
         return True
     
     game_logic_processor.dispatch_message(client_info, command)

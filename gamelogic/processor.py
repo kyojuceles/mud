@@ -107,7 +107,12 @@ class GameLogicProcessor(GlobalInstanceContainer):
             return False
 
         player_name = msg
-        player: GameObject = None    
+        player: GameObject = None
+
+        #중복접속 체크 
+        if (self._world.get_player(player_name) is not None):
+            GlobalInstance.get_event().event_output('이미 접속중인 이름입니다. 다시 입력해주세요.\n')
+            return False
         
         if client_info.is_console():
             player = factory.create_console_object(\
