@@ -1,3 +1,4 @@
+import gamelogic.global_define as global_define
 from typing import List, Tuple, Optional
 from .global_instance import GlobalInstance
 from .global_instance import GlobalInstanceContainer
@@ -19,9 +20,6 @@ class GameLogicProcessor(GlobalInstanceContainer):
     1. 입력을 받아서 처리하고 결과를 이벤트 클래스에 알려준다.
     2. GameLogicProcessor.get_instance()로 글로벌 instance를 얻을 수 있다.
     ''' 
-    ENTER_ROOM_ID = '광장_00_00'
-    UPDATE_INTERVAL = 1
-     
     def __init__(self,
      event: GameLogicProcessorEvent,
      console_player_event: NetworkConsoleEventBase):
@@ -33,7 +31,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
         self._console_player_event: NetworkConsoleEventBase = console_player_event
         self._world: World = World()
         self._players: List[Optional[GameObject]] = {}
-        self._update_timer: Timer = Timer(GameLogicProcessor.UPDATE_INTERVAL)
+        self._update_timer: Timer = Timer(global_define.UPDATE_INTERVAL)
         
         # singleton classes initialize
         GlobalInstance.set_global_instance_container(self)
@@ -51,7 +49,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
         GlobalInstance.set_global_instance_container(None)
 
     def init_test(self):
-        map1 = Map(GameLogicProcessor.ENTER_ROOM_ID, '광장 입구', '중앙에는 분수대가 있고 많은 사람들이 \
+        map1 = Map(global_define.ENTER_ROOM_ID, '광장 입구', '중앙에는 분수대가 있고 많은 사람들이 \
 분주하게 움직이고 있다.')
         map2 = Map('광장_00_01', '광장 남쪽', '북쪽으로 분수대가 보인다. 많은 사람들이 분주하게 움직이고 있다.')
         map3 = Map('광장_00_02', '광장 북쪽', '남쪽으로 분수대가 보인다. 북쪽으로 커다란 성이 보인다.\n\
@@ -125,14 +123,14 @@ class GameLogicProcessor(GlobalInstanceContainer):
 
             self._world.add_player(player)
             self._players[id] = player
-            player.get_component(GocBehaviour).enter_map(GameLogicProcessor.ENTER_ROOM_ID)
+            player.get_component(GocBehaviour).enter_map(global_define.ENTER_ROOM_ID)
             return True
 
         self._event.event_output('잘못된 명령입니다.\n')
         return False
 
     def _is_console_player(self, id: int):
-        return id == factory.CONSOLE_PLAYER_ID
+        return id == global_define.CONSOLE_PLAYER_ID
 
     def _dispatch_message_after_login(self, id: int, msg: str) -> bool:
         ret, cmd, args = Parser.cmd_parse(msg)
@@ -170,6 +168,11 @@ class GameLogicProcessor(GlobalInstanceContainer):
         # 도망 처리
         if cmd == '도망':
             behaviour.flee()
+            return True
+
+        # 재시작 처리
+        if cmd == '재시작':
+            behaviour.respawn()
             return True
 
         self._event.event_output('잘못된 명령입니다.\n')

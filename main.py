@@ -1,4 +1,5 @@
 import time
+import gamelogic.global_define as global_define
 from gamelogic.processor import GameLogicProcessor
 from gamelogic.global_instance import GameLogicProcessorEvent
 from gamelogic.components import factory
@@ -24,7 +25,7 @@ def console_command_process(command):
     if command == '종료':
         return False
     
-    game_logic_processor.dispatch_message(factory.CONSOLE_PLAYER_ID, command)
+    game_logic_processor.dispatch_message(global_define.CONSOLE_PLAYER_ID, command)
     return True
 
 while(True):

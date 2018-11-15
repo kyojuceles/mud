@@ -4,6 +4,7 @@ factory.py
 
 instance를 생성하는 함수들
 '''
+import gamelogic.global_define as global_define
 from .gameobject import GameObject
 from .behaviour import GocBehaviour
 from .attribute import GocAttribute
@@ -18,8 +19,6 @@ from .network import GocNetworkPass
 from .network import NetworkConsoleEventBase
 from ..tables.character_table import CharacterTable
 from ..tables.level_table import LevelTable
-
-CONSOLE_PLAYER_ID = -1
 
 def create_object_base(\
      name: str, is_player: bool, id: int, team_index: int) -> GameObject:
@@ -71,7 +70,7 @@ def create_object_npc(id: int) -> GameObject:
 def create_console_object(name: str, event: NetworkConsoleEventBase, lv: int, xp: int) -> GameObject:
     '''console player object를 생성하는 함수'''
     assert(isinstance(event, NetworkConsoleEventBase))
-    obj = create_object_base(name, True, CONSOLE_PLAYER_ID, 0)
+    obj = create_object_base(name, True, global_define.CONSOLE_PLAYER_ID, 0)
     obj.add_component_with_key(GocNetworkBase, GocNetworkConsole, event)
 
     attribute: GocAttribute = obj.get_component(GocAttribute)

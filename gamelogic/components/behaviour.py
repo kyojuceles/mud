@@ -1,5 +1,6 @@
 #behaviour.py
 import random
+import gamelogic.global_define as global_define
 from .gameobject import GameObject
 from .gameobject import Component
 from .entity import GocEntity
@@ -53,6 +54,24 @@ class GocBehaviour(Component):
         actor_entity.set_target(target)
         
         return True
+    
+    def respawn(self) -> bool:
+        team_attribute: GocTeamAttribute = self.get_component(GocTeamAttribute)
+        if not team_attribute.is_player():
+            return False
+
+        entity: GocEntity = self.get_component(GocEntity)
+        if not entity.is_die():
+            self.get_component(GocNetworkBase).send('재시작은 사망한 상태에만 할 수 있습니다.\n')
+            return False
+
+        behaviour: GocBehaviour = self.get_component(GocBehaviour)
+        behaviour.leave_map()
+        behaviour.enter_map(global_define.ENTER_ROOM_ID)
+
+        attribute: GocAttribute = self.get_component(GocAttribute)
+        attribute.set_hp(1)
+        entity.set_status(GocEntity.STATUS_IDLE)
 
     def flee(self) -> bool:
         entity: GocEntity = self.get_component(GocEntity)
@@ -106,7 +125,7 @@ class GocBehaviour(Component):
         target_attribute.set_hp(target_attribute.hp - dmg)
 
         self.get_component(GocNetworkBase).send(\
-        '당신은 %s에게 %d 데미지를 입혔습니다..(남은체력 %d)\n' % \
+        '당신은 %s에게 %d 데미지를 입혔습니다.(남은체력 %d)\n' % \
         (target.get_name(), dmg, target_attribute.hp))
 
         target.get_component(GocNetworkBase).send(\
@@ -137,6 +156,15 @@ class GocBehaviour(Component):
         self.get_component(GocNetworkBase).send(map.get_name() + '으로 들어갑니다.\n')
         self.output_current_map_desc()
         return True
+
+    def leave_map(self) -> bool:
+        entity: GocEntity = self.get_component(GocEntity)
+        map = entity.get_map()
+        if map is None:
+            return False
+
+        entity.set_map(None)
+        return map.leave_map(self.get_owner())
 
     def move_map(self, dest: str) -> bool:
         if not self.has_component(GocEntity):
