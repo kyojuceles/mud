@@ -20,6 +20,10 @@ class LevelTable:
         return cls.__global_instance.get_row(lv)
 
     @classmethod
+    def get_max_level(cls) -> int:
+        return cls.__global_instance.get_max_level_()
+
+    @classmethod
     def initialize(cls) -> LevelTable:
         instance = LevelTable()
         cls.__global_instance = instance
@@ -35,13 +39,15 @@ class LevelTable:
 
     def __init__(self):
         self._table = {}
+        self._max_level = 0
 
     def init_test(self):
-        self.add_row(1, 100, 100, 10, 1, 1)
-        self.add_row(2, 200, 150, 12, 1, 1)
-        self.add_row(3, 300, 200, 14, 2, 1)
-        self.add_row(4, 400, 250, 16, 2, 1)
-        self.add_row(5, 500, 300, 18, 1, 1)
+        self.add_row(1, 100, 150, 10, 2, 1)
+        self.add_row(2, 200, 300, 12, 2, 1)
+        self.add_row(3, 300, 450, 14, 3, 1)
+        self.add_row(4, 400, 600, 16, 3, 1)
+        self.add_row(5, 500, 750, 18, 3, 1)
+        self.set_max_level(5)
 
     def add_row(self,
      lv: int, next_xp: int, max_hp: int,
@@ -50,10 +56,19 @@ class LevelTable:
 
         if lv in self._table:
             return False
+
         self._table[lv] = lv_info
         return True
 
     def get_row(self, lv: int) -> LevelInfo:
         if lv not in self._table:
             return None
+
         return self._table[lv]
+
+    def set_max_level(self, max_lv: int):
+        self._max_level = max_lv
+
+    def get_max_level_(self) -> int:
+        return self._max_level
+

@@ -19,5 +19,6 @@ class Timer:
         if elapse >= self._interval_second:
             self._reset()
             return True
+            
         return False
 

@@ -1,7 +1,7 @@
 #attribyte.py
 from .gameobject import Component
-from .entity import GocEntity
 from ..tables.level_table import LevelTable
+from .team_attribute import GocTeamAttribute
 
 class GocAttribute(Component):
     '''
@@ -19,31 +19,41 @@ class GocAttribute(Component):
 
     def set_attribute(
             self, lv: int, xp: int,
-            max_hp: int, hp: int,
-            atk: int, armor:int , spd: int):
+            max_hp: int = 0, hp: int = 0,
+            atk: int = 0, armor:int = 0, spd: int = 0):
         self.max_hp = max_hp
         self.hp = hp
         self.atk = atk
         self.armor = armor
         self.spd = spd
-        self.set_level(lv)
-        self.xp = xp
-
-    def set_level(self, lv: int):
         self.lv = lv
-        self.next_xp = 0
-        
-        entity: GocEntity = self.get_component(GocEntity)
-        if entity.is_player():
-            level_info = LevelTable.get_lv_info(lv)
-            if level_info is not None:
-                self.next_xp = level_info.next_xp
+        self.xp = xp
+        self.calculate()        
 
-    def is_can_level_up(self):
-        return self.next_xp > 0
+    def calculate(self):
+        team_attribute: GocTeamAttribute = self.get_component(GocTeamAttribute)
+        if team_attribute.is_player():
+            level_info = LevelTable.get_lv_info(self.lv)
+            self.max_hp = level_info.max_hp
+            self.atk = level_info.atk
+            self.armor = level_info.armor
+            self.spd = level_info.spd
+            self.next_xp = level_info.next_xp
 
     def is_die(self):
         return self.hp <= 0
+
+    def level_up(self):
+        self.lv += 1
+        self.calculate()
+        self.set_hp_full()
+
+    def set_hp(self, hp: int):
+        self.hp = max(0, hp)
+        self.hp = min(self.max_hp, self.hp)
+
+    def set_hp_full(self):
+        self.hp = self.max_hp
 
     def get_status_desc(self):
         desc = '레벨:\t %d\t\t 경험치:\t%d/%d\n' % (self.lv, self.xp, self.next_xp)
@@ -61,7 +71,11 @@ class GocAttribute(Component):
         '''
         self.xp += xp
         next_xp = LevelTable.get_lv_info(self.lv).next_xp
-        if self.xp >= next_xp and self.is_can_level_up():
-            self.set_level(self.lv + 1)
+        if self.xp >= next_xp and self._is_can_level_up():
+            self.level_up()
             return True
+
         return False
+
+    def _is_can_level_up(self):
+        return self.lv < LevelTable.get_max_level()

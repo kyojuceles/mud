@@ -84,6 +84,7 @@ class Map:
         if len(words) > 1 and words[0].isdigit():
             order = int(words[0]) - 1
             key = words[1]
+            
         obj_list = [obj for obj in self._objs if obj.get_name() == key]
         if order >= len(obj_list):
             return None

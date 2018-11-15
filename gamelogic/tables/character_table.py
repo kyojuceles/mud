@@ -40,19 +40,21 @@ class CharacterTable:
 
     def init_test(self):
         self.add_row(1000, '경비병', 10, 100, 10, 1, 1)
-        self.add_row(1001, '경비대장', 100, 150, 12, 1, 1)
+        self.add_row(1001, '경비대장', 100, 150, 11, 1, 1)
 
-    def add_row(self,
-     id: int, name: str, gain_xp: int, max_hp: int,
+    def add_row(self,\
+     id: int, name: str, gain_xp: int, max_hp: int,\
      atk: int, armor: int, spd: int) -> bool:
         chr_info = CharacterInfo(name, gain_xp, max_hp, atk, armor, spd)
 
         if id in self._table:
             return False
+
         self._table[id] = chr_info
         return True
 
     def get_row(self, lv: int) -> CharacterInfo:
         if lv not in self._table:
             return None
+
         return self._table[lv]

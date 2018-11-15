@@ -2,6 +2,7 @@
 from ..global_instance import GlobalInstance
 from .updater_base import GocUpdaterBase
 from .attribute import GocAttribute
+from .team_attribute import GocTeamAttribute
 from .behaviour import GocBehaviour
 from .entity import GocEntity
 from .network import GocNetworkBase
@@ -48,8 +49,9 @@ class GocUpdater(GocUpdaterBase):
             entity.set_status(GocEntity.STATUS_IDLE)
             entity.set_target(None)
 
+            team_attribute: GocTeamAttribute = self.get_component(GocTeamAttribute)
             # 플레이어인 경우 경험치 획득.
-            if entity.is_player:
+            if team_attribute.is_player():
                 attribute: GocAttribute = self.get_component(GocAttribute)
                 gain_xp = CharacterTable.get_chr_info(target.get_id()).gain_xp
                 is_level_up = attribute.gain_xp(gain_xp)

@@ -119,11 +119,9 @@ class GameLogicProcessor(GlobalInstanceContainer):
             player = None
 
             if self._is_console_player(id):
-                player = factory.create_console_object(
-                    '플레이어', self._console_player_event, 1, 0, 1000, 15, 1, 1)
+                player = factory.create_console_object('플레이어', self._console_player_event, 1, 0)
             else:
-                player = factory.create_object_player(
-                    '플레이어', 1, 0, -1, 1000, 15, 1, 1)
+                player = factory.create_object_player('플레이어', -1, 1, 0)
 
             self._world.add_player(player)
             self._players[id] = player

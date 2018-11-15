@@ -3,6 +3,7 @@ from .gameobject import GameObject
 from .gameobject import Component
 from .entity import GocEntity
 from .attribute import GocAttribute
+from .team_attribute import GocTeamAttribute
 from ..world.map import Map
 from ..world.world import World
 from ..global_instance import GlobalInstance
@@ -19,16 +20,27 @@ class GocBehaviour(Component):
         if current_map is None:
             return False
 
+        #공격하려는 대상이 맵안에 있는지 체크
         target = current_map.get_object(target_name)
         if target is None:
             self.get_component(GocNetworkBase).send('대상이 존재하지 않습니다.\n')
             return False
 
-        target_entity: GocEntity = target.get_component(GocEntity)
+        #공격할 수 있는 상태인지 체크
+        if actor_entity.get_status() != GocEntity.STATUS_IDLE:
+            self.get_component(GocNetworkBase).send('공격을 할 수 있는 상태가 아닙니다.\n')
+            return False
+        
+        #대상이 적군인지 체크(아군이면 공격할 수 없다)
+        team_attribute: GocTeamAttribute = self.get_component(GocTeamAttribute)
+        if team_attribute.is_ally(target):
+            self.get_component(GocNetworkBase).send('아군은 공격할 수 없습니다.\n')
+            return False
 
-        if actor_entity.get_status() != GocEntity.STATUS_IDLE or \
-           target_entity.get_status() == GocEntity.STATUS_DEATH:
-            self.get_component(GocNetworkBase).send('대상을 공격할 수 없습니다.\n')
+        #대상이 살아 있는지 체크
+        target_entity: GocEntity = target.get_component(GocEntity)
+        if target_entity.get_status() == GocEntity.STATUS_DEATH:
+            self.get_component(GocNetworkBase).send('사망한 대상은 공격할 수 없습니다.\n')
             return False
 
         actor_entity.set_status(GocEntity.STATUS_BATTLE)
@@ -45,14 +57,14 @@ class GocBehaviour(Component):
         target_attribute: GocAttribute = target.get_component(GocAttribute)
         dmg = actor_attribute.atk - target_attribute.armor
         dmg = max(dmg, 0)
-        target_attribute.hp = max(target_attribute.hp - dmg, 0)
+        target_attribute.set_hp(target_attribute.hp - dmg)
 
         self.get_component(GocNetworkBase).send(\
-        '당신은 %s에게 %d 데미지를 주었다.(남은체력 %d)\n' % \
+        '당신은 %s에게 %d 데미지를 입혔습니다..(남은체력 %d)\n' % \
         (target.get_name(), dmg, target_attribute.hp))
 
         target.get_component(GocNetworkBase).send(\
-        '%s는 당신에게 %d 데미지를 주었다.(남은체력 %d)\n' % \
+        '%s는 당신에게 %d 데미지를 입혔습니다.(남은체력 %d)\n' % \
         (self.get_owner_name(), dmg, target_attribute.hp))
 
         # 대상이 IDLE 상태에서 공격을 당하면 반격을 한다.

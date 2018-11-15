@@ -14,7 +14,7 @@ from ..gamelogic.tables.level_table import LevelTable
 from ..gamelogic.tables.character_table import CharacterTable
 
 def test_has_components_with_create_hero():
-    hero = factory.create_object_npc_with_attribute('hero', -1, 100, 10, 1, 1)
+    hero = factory.create_object_npc_with_attribute('hero', -1, 100, 10, 1, 1, 0)
     assert hero.has_component(GocAttribute)
     assert hero.has_component(GocBehaviour)
     assert hero.has_component(GocUpdaterBase)
@@ -27,7 +27,7 @@ def test_has_components_with_create_hero():
     assert attribute.spd == 1
 
 def test_player_after_add_player_to_world():
-    player = factory.create_object_npc_with_attribute('player', -1, 100, 10, 1, 1)
+    player = factory.create_object_npc_with_attribute('player', -1, 100, 10, 1, 1, 0)
     world = World()
     world.add_player(player)
 
@@ -150,7 +150,7 @@ def test_command_parse():
     assert ret == True and args == (test2_arg_string,)
 
 def test_game_object_enter_leave_map():
-    player = factory.create_object_npc_with_attribute('플레이어', -1, 100, 10, 1, 1)
+    player = factory.create_object_npc_with_attribute('플레이어', -1, 100, 10, 1, 1, 0)
     map = Map('테스트맵', '테스트맵', '정적이 흐르는 방')
     map.enter_map(player)
     obj = map.get_object('플레이어')
@@ -165,8 +165,8 @@ def test_game_object_enter_leave_map():
     assert obj == None
 
 def test_order_of_object_in_map():
-    player1 = factory.create_object_npc_with_attribute('플레이어', 0, 100, 10, 1, 1)
-    player2 = factory.create_object_npc_with_attribute('플레이어', 1, 100, 10, 1, 1)
+    player1 = factory.create_object_npc_with_attribute('플레이어', 0, 100, 10, 1, 1, 0)
+    player2 = factory.create_object_npc_with_attribute('플레이어', 1, 100, 10, 1, 1, 0)
     map = Map('테스트맵', '테스트맵', '정적이 흐르는 방')
     map.enter_map(player1)
     map.enter_map(player2)
@@ -182,7 +182,7 @@ def test_order_of_object_in_map():
     assert obj_list[1].get_id() == 1
 
 def test_output_map_desc():
-    player = factory.create_object_npc_with_attribute('플레이어', 0, 100, 10, 1, 1)
+    player = factory.create_object_npc_with_attribute('플레이어', 0, 100, 10, 1, 1, 0)
     map = Map('테스트맵', '테스트맵', '정적이 흐르는 방')
     map2 = Map('테스트맵2', '테스트맵2', '정적이 흐르는 방')
     map.add_visitable_map('남', map2)
@@ -192,8 +192,8 @@ def test_output_map_desc():
     assert map_desc == '[테스트맵]\n정적이 흐르는 방\n[남]\n'
 
 def test_start_battle_with_behaviour():
-    attacker = factory.create_object_npc_with_attribute('공격자', 0, 100, 10, 1, 1)
-    target = factory.create_object_npc_with_attribute('방어자', 1, 100, 10, 1, 1)
+    attacker = factory.create_object_npc_with_attribute('공격자', 0, 100, 10, 1, 1, 0)
+    target = factory.create_object_npc_with_attribute('방어자', 1, 100, 10, 1, 1, 1)
     map = Map('테스트맵', '테스트맵', '정적이 흐르는 방')
     attacker.get_component(GocEntity).set_map(map)
     map.enter_map(attacker)

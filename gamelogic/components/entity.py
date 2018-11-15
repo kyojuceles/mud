@@ -4,8 +4,6 @@ from .gameobject import GameObject
 from .gameobject import Component
 from ..world.map import Map
 
-
-
 class GocEntity(Component):
     '''
     캐릭터의 상태, 위치와 같은 정보를 나타내는 컴포넌트.
@@ -14,14 +12,10 @@ class GocEntity(Component):
     STATUS_BATTLE: int = 2
     STATUS_DEATH: int = 3
 
-    def __init__(self, is_player: bool):
+    def __init__(self):
         self._map = None
         self._target = None
         self._status = GocEntity.STATUS_IDLE
-        self._is_player = is_player
-
-    def is_player(self):
-        return self._is_player
 
     def get_status(self):
         return self._status
