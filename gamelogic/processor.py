@@ -3,6 +3,7 @@ from typing import List, Tuple, Optional
 from .global_instance import GlobalInstance
 from .global_instance import GlobalInstanceContainer
 from .global_instance import GameLogicProcessorEvent
+from .client_info import ClientInfo
 from .components.gameobject import GameObject
 from .utils.timer import Timer
 from .world.world import World
@@ -12,7 +13,6 @@ from .components import factory
 from .components.network import NetworkConsoleEventBase
 from .tables.character_table import CharacterTable
 from .tables.level_table import LevelTable
-
 
 class GameLogicProcessor(GlobalInstanceContainer):
     '''
@@ -30,7 +30,6 @@ class GameLogicProcessor(GlobalInstanceContainer):
         self._event: GameLogicProcessorEvent = event
         self._console_player_event: NetworkConsoleEventBase = console_player_event
         self._world: World = World()
-        self._players: List[Optional[GameObject]] = {}
         self._update_timer: Timer = Timer(global_define.UPDATE_INTERVAL)
         
         # singleton classes initialize
@@ -65,11 +64,11 @@ class GameLogicProcessor(GlobalInstanceContainer):
         self._world.add_map(map2)
         self._world.add_map(map3)
 
-        npc1 = factory.create_object_npc(1000)
+        npc1 = factory.create_object_npc(100000)
         self._world.add_npc(npc1)
         npc1.get_component(GocBehaviour).enter_map('광장_00_02')
 
-        npc2 = factory.create_object_npc(1001)
+        npc2 = factory.create_object_npc(100001)
         self._world.add_npc(npc2)
         npc2.get_component(GocBehaviour).enter_map('광장_00_02')
 
@@ -88,54 +87,44 @@ class GameLogicProcessor(GlobalInstanceContainer):
         if self._update_timer.is_signal():
             self._world.update()
 
-    def get_player(self, id: str) -> GameObject:
-        return self._players.get(id)
-
     def get_event(self) -> GameLogicProcessorEvent:
         return self._event
 
     def get_world(self) -> World:
         return self._world
     
-    def dispatch_message(self, id: int, msg: str) -> bool:
-        if not self._is_login(id):
-            return self._dispatch_message_before_login(id, msg)
-        
-        return self._dispatch_message_after_login(id, msg)
-
-    def _dispatch_message_before_login(self, id: int, msg: str) -> bool:
-        ret, cmd, args = Parser.cmd_parse(msg)
-
-        if not ret:
-            self._event.event_output('잘못된 명령입니다.\n')
+    def dispatch_message(self, client_info: ClientInfo, msg: str) -> bool:
+        if client_info.get_status() == ClientInfo.STATUS_NOT_CONNECT:
             return False
 
-        if cmd == '접속':
-            if id in self._players:
-                return False
+        if client_info.get_status() == ClientInfo.STATUS_NOT_LOGIN:
+            return self._dispatch_message_before_login(client_info, msg)
 
-            player = None
+        return self._dispatch_message_after_login(client_info, msg)
 
-            if self._is_console_player(id):
-                player = factory.create_console_object('플레이어', self._console_player_event, 1, 0)
-            else:
-                player = factory.create_object_player('플레이어', -1, 1, 0)
+    def _dispatch_message_before_login(self, client_info: ClientInfo, msg: str) -> bool:
+        if not msg:
+            return False
 
-            self._world.add_player(player)
-            self._players[id] = player
-            player.get_component(GocBehaviour).enter_map(global_define.ENTER_ROOM_ID)
-            return True
+        player_name = msg
+        player: GameObject = None    
+        
+        if client_info.is_console():
+            player = factory.create_console_object(\
+             player_name, self._console_player_event, 0, 1, 0)
+        else:
+            player = factory.create_object_player(player_name, 0, 1, 0)
+            
+        client_info.set_player(player)
+        client_info.set_status(ClientInfo.STATUS_LOGIN)
+        self._world.add_player(player)
+        player.get_component(GocBehaviour).enter_map(global_define.ENTER_ROOM_ID)
+        return True
 
-        self._event.event_output('잘못된 명령입니다.\n')
-        return False
-
-    def _is_console_player(self, id: int):
-        return id == global_define.CONSOLE_PLAYER_ID
-
-    def _dispatch_message_after_login(self, id: int, msg: str) -> bool:
+    def _dispatch_message_after_login(self, client_info: ClientInfo, msg: str) -> bool:
         ret, cmd, args = Parser.cmd_parse(msg)
 
-        player = self.get_player(id)
+        player = client_info._player
         if (player is None):
             return False
 
@@ -177,9 +166,6 @@ class GameLogicProcessor(GlobalInstanceContainer):
 
         self._event.event_output('잘못된 명령입니다.\n')
         return False
-
-    def _is_login(self, id: int) -> bool:
-        return id in self._players
 
 class Parser:
     arg_infos_list = {'공격': ['str']}

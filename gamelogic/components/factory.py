@@ -41,6 +41,17 @@ def create_object_player(name: str, id: int, lv: int, xp: int) -> GameObject:
     attribute.set_hp_full()
     return obj
 
+def create_console_object(name: str, event: NetworkConsoleEventBase, id: int, lv: int, xp: int) -> GameObject:
+    '''console player object를 생성하는 함수'''
+    assert(isinstance(event, NetworkConsoleEventBase))
+    obj = create_object_base(name, True, id, 0)
+    obj.add_component_with_key(GocNetworkBase, GocNetworkConsole, event)
+
+    attribute: GocAttribute = obj.get_component(GocAttribute)
+    attribute.set_attribute(lv, xp)
+    attribute.set_hp_full()
+    return obj
+
 def create_object_npc_with_attribute(\
      name: str, id: int,\
      hp: int, atk: int, armor: int, spd: int, team_index: int) -> GameObject:
@@ -66,16 +77,3 @@ def create_object_npc(id: int) -> GameObject:
          0, 0, chr_info.max_hp, chr_info.max_hp,
          chr_info.atk, chr_info.armor, chr_info.spd)
     return obj
-
-def create_console_object(name: str, event: NetworkConsoleEventBase, lv: int, xp: int) -> GameObject:
-    '''console player object를 생성하는 함수'''
-    assert(isinstance(event, NetworkConsoleEventBase))
-    obj = create_object_base(name, True, global_define.CONSOLE_PLAYER_ID, 0)
-    obj.add_component_with_key(GocNetworkBase, GocNetworkConsole, event)
-
-    attribute: GocAttribute = obj.get_component(GocAttribute)
-    attribute.set_attribute(lv, xp)
-    attribute.set_hp_full()
-    return obj
-
-    

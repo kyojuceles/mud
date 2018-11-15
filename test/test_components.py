@@ -14,6 +14,7 @@ from ..gamelogic.components.network import NetworkConsoleEventBase
 from ..gamelogic.tables.level_table import LevelTable
 from ..gamelogic.tables.character_table import CharacterTable
 from ..gamelogic.components.network import GocNetworkBase
+from ..gamelogic.client_info import ClientInfo
 
 def test_has_components_with_create_hero():
     hero = factory.create_object_npc_with_attribute('hero', -1, 100, 10, 1, 1, 0)
@@ -73,8 +74,11 @@ def test_move_with_player():
     world.add_map(map2)
     world.add_map(map3)
 
-    processor.dispatch_message(global_define.CONSOLE_PLAYER_ID, '접속')
-    player = processor.get_player(global_define.CONSOLE_PLAYER_ID)
+    client_info = ClientInfo(True)
+    client_info.set_status(ClientInfo.STATUS_NOT_LOGIN)
+    processor.dispatch_message(client_info, '플레이어')
+
+    player = client_info.get_player()
     entity: GocEntity = player.get_component(GocEntity)
     current_map = entity.get_map()
     assert current_map is not None
@@ -82,29 +86,29 @@ def test_move_with_player():
     assert player == current_map.get_object(player.get_name())
 
     prev_map = current_map
-    processor.dispatch_message(global_define.CONSOLE_PLAYER_ID, '남')
+    processor.dispatch_message(client_info, '남')
     current_map = entity.get_map()
     assert prev_map.get_object(player.get_name()) == None
     assert current_map is not None
     assert current_map.get_id() == '광장_00_01'
     assert player == current_map.get_object(player.get_name())
     
-    processor.dispatch_message(global_define.CONSOLE_PLAYER_ID, '하늘')
+    processor.dispatch_message(client_info, '하늘')
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_01'
 
-    processor.dispatch_message(global_define.CONSOLE_PLAYER_ID, '북')
+    processor.dispatch_message(client_info, '북')
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_00'
 
-    processor.dispatch_message(global_define.CONSOLE_PLAYER_ID, '북')
+    processor.dispatch_message(client_info, '북')
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_02'
 
-    processor.dispatch_message(global_define.CONSOLE_PLAYER_ID, '남')
+    processor.dispatch_message(client_info, '남')
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_00'
