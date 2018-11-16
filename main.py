@@ -81,3 +81,5 @@ while(True):
     time.sleep(0.00001)
 
 game_logic_processor.get_event().event_output('프로그램을 종료합니다.\n')
+
+#테스트
