@@ -275,6 +275,17 @@ def test_data_tables():
 def test_just_call_method():
     obj = factory.create_object_npc_with_attribute('플레이어', 0, 100, 10, 0, 0, 0)
     obj.get_component(GocNetworkBase).broadcast_in_map('테스트')
+    #obj.get_component(GocNetworkBase).broadcast_in_world('테스트')
+
+def test_recovery_by_percent_hp():
+    obj = factory.create_object_npc_with_attribute('플레이어', 0, 100, 10, 0, 0, 0)
+    attribute: GocAttribute = obj.get_component(GocAttribute)
+    attribute.set_hp(1)
+    behaviour: GocBehaviour = obj.get_component(GocBehaviour)
+    behaviour.recovery_by_percent(10)
+    
+    assert attribute.hp == 11
+
 
 
 

@@ -76,6 +76,21 @@ class GocBehaviour(Component):
         attribute.set_hp(1)
         entity.set_status(GocEntity.STATUS_IDLE)
 
+    def recovery_by_percent(self, percent: int) -> bool:
+        '''
+        최대 hp의 퍼센트만큼을 회복한다.
+        percent의 범위는 1~100
+        '''
+        if percent < 1: return False
+        if percent > 100 : percent = 100
+
+        attribute: GocAttribute = self.get_component(GocAttribute)
+        max_hp = attribute.max_hp
+        amount = int(max_hp * (percent / 100))
+        attribute.set_hp(attribute.hp + amount)
+
+        return True
+
     def say(self, msg):
         '''방에 있는 구성원들에게 말하는 기능'''
         network_base: GocNetworkBase = self.get_component(GocNetworkBase)
@@ -234,3 +249,12 @@ class GocBehaviour(Component):
         status_desc += attribute.get_status_desc()
 
         self.get_component(GocNetworkBase).send(status_desc)
+
+    def output_command_prompt(self):
+        team_attribute: GocTeamAttribute = self.get_component(GocTeamAttribute)
+        attribute: GocAttribute = self.get_component(GocAttribute)
+        if not team_attribute.is_player():
+            return
+
+        command_prompt = '[%d/%d] ' % (attribute.hp, attribute.max_hp)
+        self.get_component(GocNetworkBase).send(command_prompt)

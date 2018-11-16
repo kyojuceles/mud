@@ -1,5 +1,6 @@
 #world.py
 
+import gamelogic.global_define as global_define
 from ..components.gameobject import GameObject
 from ..components.updater_base import GocUpdaterBase
 from .map import Map
@@ -12,6 +13,7 @@ class World:
         self._maps = {}
         self._players = {}
         self._objs = []
+        self._update_tick_count = 0
 
     def add_player(self, player: GameObject) -> bool:
         assert(isinstance(player, GameObject))
@@ -55,10 +57,23 @@ class World:
         for map in self._maps.values():
             map.update()
 
+        #회복턴이 되었는지 체크
+        is_recovery_tick: bool = False
+        self._update_tick_count += 1
+        if self._update_tick_count >= global_define.TICK_FOR_UPDATE_RECOVERY:
+            self._update_tick_count = 0
+            is_recovery_tick = True
+
+        #오브젝트들의 update를 실행
         for obj in self._objs:
             updater: GocUpdaterBase = obj.get_component(GocUpdaterBase)
             if updater is not None:
                 updater.update()
+                if is_recovery_tick:
+                    updater.update_recovery()
+
+
+
 
     def _add_object(self, obj: GameObject) -> bool:
         if obj in self._objs:

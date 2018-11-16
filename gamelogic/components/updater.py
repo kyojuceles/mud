@@ -23,6 +23,14 @@ class GocUpdater(GocUpdaterBase):
 
         self._reset_update()
 
+    def update_recovery(self):
+        #최대 hp의 5프로가 회복된다.(임시)
+        behaviour: GocBehaviour = self.get_component(GocBehaviour)
+        network_base: GocNetworkBase = self.get_component(GocNetworkBase)
+        behaviour.recovery_by_percent(5)
+        network_base.send('\n')
+        behaviour.output_command_prompt()
+
     def _reset_update(self):
         '''매 턴마다 필요한 초기화를 하는 함수'''
         entity: GocEntity = self.get_component(GocEntity)
@@ -73,6 +81,8 @@ class GocUpdater(GocUpdaterBase):
                 # 레벨업 처리.
                 if is_level_up:
                      self.get_component(GocNetworkBase).send('레벨이 상승했습니다. 축하합니다!\n')
+        
+        behaviour.output_command_prompt()
 
 
                 

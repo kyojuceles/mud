@@ -50,6 +50,9 @@ def console_command_process(command):
         game_logic_processor.get_event().event_output('이름을 입력해주세요.\n')
         return True
 
+    if client_count <= 0:
+        return True
+
     client_info = client_info_list[current_client_info_index]
     if client_info is None:
         return True

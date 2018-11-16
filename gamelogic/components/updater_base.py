@@ -7,3 +7,6 @@ class GocUpdaterBase(Component):
     '''  
     def update(self):
         raise NotImplementedError('you should implement update method')
+
+    def update_recovery(self):
+        raise NotImplementedError('you should implement update_recovery method')

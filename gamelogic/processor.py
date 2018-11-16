@@ -100,7 +100,10 @@ class GameLogicProcessor(GlobalInstanceContainer):
         if client_info.get_status() == ClientInfo.STATUS_NOT_LOGIN:
             return self._dispatch_message_before_login(client_info, msg)
 
-        return self._dispatch_message_after_login(client_info, msg)
+        ret = self._dispatch_message_after_login(client_info, msg)
+        behaviour: GocBehaviour = client_info.get_player().get_component(GocBehaviour)
+        behaviour.output_command_prompt()
+        return ret
 
     def _dispatch_message_before_login(self, client_info: ClientInfo, msg: str) -> bool:
         if not msg:
@@ -124,6 +127,8 @@ class GameLogicProcessor(GlobalInstanceContainer):
         client_info.set_status(ClientInfo.STATUS_LOGIN)
         self._world.add_player(player)
         player.get_component(GocBehaviour).enter_map(global_define.ENTER_ROOM_ID)
+        behaviour: GocBehaviour = player.get_component(GocBehaviour)
+        behaviour.output_command_prompt()
         return True
 
     def _dispatch_message_after_login(self, client_info: ClientInfo, msg: str) -> bool:
