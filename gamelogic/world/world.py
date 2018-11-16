@@ -29,6 +29,9 @@ class World:
 
         return self._players[name]
 
+    def get_player_list(self) -> GameObject:
+        return list(self._players.values())
+
     def add_npc(self, npc: GameObject):
         assert(isinstance(npc, GameObject))
         assert(self._add_object(npc))

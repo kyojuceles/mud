@@ -1,7 +1,8 @@
 #network.py
-
+from gamelogic.global_instance import GlobalInstance
 from .gameobject import Component
 from .entity import GocEntity
+from ..world.world import World
 from ..world.map import Map
 
 class GocNetworkBase(Component):
@@ -24,8 +25,16 @@ class GocNetworkBase(Component):
                 if is_except_owner and obj == owner:
                     continue
                 obj.get_component(GocNetworkBase).send(msg)
-                
 
+    def broadcast_in_world(self, msg: str, is_except_owner: bool = False):
+        world: World = GlobalInstance.get_world()
+        owner = self.get_owner()
+        objs = world.get_player_list()
+        for obj in objs:
+            if is_except_owner and obj == owner:
+                continue
+            obj.get_component(GocNetworkBase).send(msg)
+        
 class GocNetwork(GocNetworkBase):
     ''' 
     send()를 호출하면 네트워크상으로 연결된 client에게 메시지를 보내는 컴포넌트.

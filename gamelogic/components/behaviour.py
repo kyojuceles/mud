@@ -56,6 +56,9 @@ class GocBehaviour(Component):
         return True
     
     def respawn(self) -> bool:
+        '''
+        죽었을때 리스폰 방에서 부활하는 함수(재시작)
+        '''
         team_attribute: GocTeamAttribute = self.get_component(GocTeamAttribute)
         if not team_attribute.is_player():
             return False
@@ -72,6 +75,18 @@ class GocBehaviour(Component):
         attribute: GocAttribute = self.get_component(GocAttribute)
         attribute.set_hp(1)
         entity.set_status(GocEntity.STATUS_IDLE)
+
+    def say(self, msg):
+        '''방에 있는 구성원들에게 말하는 기능'''
+        network_base: GocNetworkBase = self.get_component(GocNetworkBase)
+        network_base.broadcast_in_map('%s님이 "%s"라고 말했습니다.\n' % (self.get_owner_name_title(), msg), True)
+        network_base.send('당신이 "%s"라고 말했습니다.\n' % msg)
+
+    def say_to_world(self, msg):
+        '''월드에 있는 모든 플레이어들에게 말하는 기능'''
+        network_base: GocNetworkBase = self.get_component(GocNetworkBase)
+        network_base.broadcast_in_world('%s님이 "%s"라고 외쳤습니다.\n' % (self.get_owner_name_title(), msg), True)
+        network_base.send('당신이 "%s"라고 외쳤습니다.\n' % msg)       
 
     def flee(self) -> bool:
         entity: GocEntity = self.get_component(GocEntity)
@@ -109,7 +124,7 @@ class GocBehaviour(Component):
             return False
 
         self.get_component(GocNetworkBase).broadcast_in_map(\
-         '%s가 [%s]쪽으로 도망쳤습니다.\n' % (entity.make_name_title(), flee_map_dest),
+         '%s가 [%s]쪽으로 도망쳤습니다.\n' % (self.get_owner_name_title(), flee_map_dest),
          True)
         self.get_component(GocNetworkBase).send('당신은 도망쳤습니다. 전투를 종료합니다.\n')
         return True
@@ -214,7 +229,7 @@ class GocBehaviour(Component):
     def output_status(self):
         entity: GocEntity = self.get_component(GocEntity)
         attribute: GocAttribute = self.get_component(GocAttribute)
-        status_desc = entity.make_name_title() + '\n'
+        status_desc = self.get_owner_name_title() + '\n'
         status_desc += entity.get_status_desc()
         status_desc += attribute.get_status_desc()
 

@@ -54,19 +54,16 @@ class GocEntity(Component):
         desc = ''
 
         if self._status == GocEntity.STATUS_DEATH:
-            desc = self.make_name_title() + '의 시체가 놓여있습니다.\n'
+            desc = self.get_owner_name_title() + '의 시체가 놓여있습니다.\n'
         elif self._status == GocEntity.STATUS_BATTLE and \
              self.get_target() is not None:
-            desc = self.make_name_title() + '이 ' + \
-            self.get_target().get_component(GocEntity).make_name_title() + \
+            desc = self.get_owner_name_title() + '이 ' + \
+            self.get_target().get_name_title() + \
             '를 공격중입니다.\n'
         else:
-            desc = self.make_name_title() + '이 서 있습니다.\n'
+            desc = self.get_owner_name_title() + '이 서 있습니다.\n'
 
         return desc
-
-    def make_name_title(self) -> str:
-        return '[' + self.get_owner_name() + ']'
 
     def is_try_flee(self) -> bool:
         return self._is_try_flee

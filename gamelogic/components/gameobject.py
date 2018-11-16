@@ -34,6 +34,9 @@ class GameObject:
 
     def get_name(self) -> str:
         return self._name
+
+    def get_name_title(self) -> str:
+        return '[' + self.get_name() + ']'
     
     def get_id(self) -> int:
         return self._id
@@ -50,6 +53,9 @@ class Component:
 
     def get_owner_name(self) -> str:
         return self.owner.get_name() if self.has_owner() else ''
+
+    def get_owner_name_title(self) -> str:
+        return self.owner.get_name_title() if self.has_owner() else ''
 
     def set_owner(self, owner: GameObject):
         self.owner = owner

@@ -169,11 +169,21 @@ class GameLogicProcessor(GlobalInstanceContainer):
             behaviour.respawn()
             return True
 
+        # 말하기 처리
+        if cmd == '말하기':
+            behaviour.say(args[0])
+            return True
+
+        # 외치기 처리
+        if cmd == '외치기':
+            behaviour.say_to_world(args[0])
+            return True
+
         self._event.event_output('잘못된 명령입니다.\n')
         return False
 
 class Parser:
-    arg_infos_list = {'공격': ['str']}
+    arg_infos_list = {'공격': ['str'], '말하기': ['msg'], '외치기': ['msg']}
 
     @staticmethod
     def cmd_parse(msg: str):
