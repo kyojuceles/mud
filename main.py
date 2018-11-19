@@ -96,3 +96,5 @@ tasks = [update_task]
 loop.run_until_complete(asyncio.gather(*tasks))
 
 game_logic_processor.get_event().event_output('프로그램을 종료합니다.\n')
+
+#테스트
