@@ -13,10 +13,12 @@ class GocEntity(Component):
     STATUS_DEATH: int = 3
 
     def __init__(self):
+        super().__init__() 
         self._map = None
         self._target = None
         self._status = GocEntity.STATUS_IDLE
         self._is_try_flee = False
+        self._destroy = False
 
     def get_status(self):
         return self._status
@@ -30,6 +32,9 @@ class GocEntity(Component):
         else:
             assert(isinstance(map, Map))
             self._map = weakref.ref(map)
+
+    def destroy(self):
+        self._destroy = True
 
     def get_map(self) -> Map:
         if self._map is None:
@@ -82,4 +87,7 @@ class GocEntity(Component):
 
     def is_idle(self) -> bool:
         return self._status == GocEntity.STATUS_IDLE
+
+    def is_destroy(self) -> bool:
+        return self._destroy
     

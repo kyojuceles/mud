@@ -1,28 +1,32 @@
 import time
+import sys
+import asyncio
 import gamelogic.global_define as global_define
-from gamelogic.client_info import ClientInfo
+from network.client_info import ClientInfo
 from gamelogic.processor import GameLogicProcessor
 from gamelogic.global_instance import GameLogicProcessorEvent
 from gamelogic.components import factory
-from gamelogic.components.network import NetworkConsoleEventBase
 from gamelogic.utils import async_input
-
 
 class EventProcessor(GameLogicProcessorEvent):
 
     def event_output(self, output):
         print('[SYSTEM] ' + output, end = '')
 
-class EventNetworkConsole(NetworkConsoleEventBase):
-
-    def on_receive(self, msg):
-        print(msg, end = '')
-
-game_logic_processor = GameLogicProcessor(EventProcessor(), EventNetworkConsole())
+game_logic_processor = GameLogicProcessor(EventProcessor())
 game_logic_processor.init_test()
 game_logic_processor.start()
 client_info_list = []
 current_client_info_index = -1
+
+async def update():
+    global game_logic_processor
+    while True:
+        results = async_input.read()
+        for result in results:
+            console_command_process(result) 
+        game_logic_processor.update()
+        await asyncio.sleep(0.00001)
 
 def get_current_client_info():
     global client_info_list
@@ -47,7 +51,7 @@ def console_command_process(command):
         client_info_list.append(new_client_info)
         client_count += 1
         current_client_info_index = client_count - 1
-        game_logic_processor.get_event().event_output('이름을 입력해주세요.\n')
+        game_logic_processor.output_welcome_message(new_client_info)
         return True
 
     if client_count <= 0:
@@ -69,6 +73,7 @@ def console_command_process(command):
     game_logic_processor.dispatch_message(client_info, command)
     return True
 
+'''
 while(True):
     is_exit = False
     results = async_input.read()
@@ -82,5 +87,12 @@ while(True):
 
     game_logic_processor.update()
     time.sleep(0.00001)
+'''
+#테스트 생성 및 실행
+loop = asyncio.get_event_loop()
+update_task = asyncio.ensure_future(update())
+tasks = [update_task]
+
+loop.run_until_complete(asyncio.gather(*tasks))
 
 game_logic_processor.get_event().event_output('프로그램을 종료합니다.\n')

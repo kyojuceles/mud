@@ -9,6 +9,7 @@ class GocTeamAttribute(Component):
     플레이어인지 npc인지 아군인지 적인지 등등을 판단하는 기능을 주로 한다.
     '''
     def __init__(self, is_player: bool, team_index: int):
+        super().__init__() 
         self._is_player = is_player
         self._team_index = team_index
 

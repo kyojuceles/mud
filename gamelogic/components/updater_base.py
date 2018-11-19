@@ -5,6 +5,9 @@ class GocUpdaterBase(Component):
     '''
     updater components들의 부모 클래스
     '''  
+    def __init__(self):
+        pass
+
     def update(self):
         raise NotImplementedError('you should implement update method')
 

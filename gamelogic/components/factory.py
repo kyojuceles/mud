@@ -16,7 +16,6 @@ from .network import GocNetworkBase
 from .network import GocNetwork
 from .network import GocNetworkConsole
 from .network import GocNetworkPass
-from .network import NetworkConsoleEventBase
 from ..tables.character_table import CharacterTable
 from ..tables.level_table import LevelTable
 
@@ -41,9 +40,8 @@ def create_object_player(name: str, id: int, lv: int, xp: int) -> GameObject:
     attribute.set_hp_full()
     return obj
 
-def create_console_object(name: str, event: NetworkConsoleEventBase, id: int, lv: int, xp: int) -> GameObject:
+def create_console_object(name: str, event, id: int, lv: int, xp: int) -> GameObject:
     '''console player object를 생성하는 함수'''
-    assert(isinstance(event, NetworkConsoleEventBase))
     obj = create_object_base(name, True, id, 0)
     obj.add_component_with_key(GocNetworkBase, GocNetworkConsole, event)
 

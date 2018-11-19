@@ -16,6 +16,9 @@ class GocBehaviour(Component):
     캐릭터들의 이동, 공격, 상태, 맵 보기 등의 기능들을 처리하는 컴포넌트.
     캐릭터들의 행동들은 대부분 이 컴포넌트를 통해서 시작됨
     '''
+    def __init__(self):
+        super().__init__()        
+
     def start_battle(self, target_name: str) -> bool:
         actor_entity: GocEntity = self.get_component(GocEntity)
         current_map = actor_entity.get_map()
@@ -183,6 +186,8 @@ class GocBehaviour(Component):
 
         entity: GocEntity = self.get_component(GocEntity)
         entity.set_map(map)
+        self.get_component(GocNetworkBase).broadcast_in_map(
+            '%s가 들어왔습니다.\n' % self.get_owner_name_title(), True)
         self.get_component(GocNetworkBase).send(map.get_name() + '으로 들어갑니다.\n')
         self.output_current_map_desc()
         return True
@@ -193,6 +198,8 @@ class GocBehaviour(Component):
         if map is None:
             return False
 
+        self.get_component(GocNetworkBase).broadcast_in_map(
+            '%s가 나갔습니다.\n' % self.get_owner_name_title(), True)
         entity.set_map(None)
         return map.leave_map(self.get_owner())
 
@@ -224,8 +231,21 @@ class GocBehaviour(Component):
         dest_map.enter_map(self.get_owner())
 
         entity.set_map(dest_map)
+        self.get_component(GocNetworkBase).broadcast_in_map(
+            '%s가 %s쪽으로 갑니다.\n' % (self.get_owner_name_title(), dest), False)
         self.get_component(GocNetworkBase).send(dest + '쪽으로 갑니다.\n')
         self.output_current_map_desc()
+        return True
+
+    def leave_world(self) -> bool:
+        teamAttribute: GocTeamAttribute = self.get_component(GocTeamAttribute)
+        if not teamAttribute.is_player:
+            return False
+
+        self.leave_map()
+        entity: GocEntity = self.get_component(GocEntity)
+        entity.destroy()
+
         return True
 
     def output_current_map_desc(self):

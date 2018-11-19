@@ -8,6 +8,7 @@ class GocAttribute(Component):
     캐릭터의 능력치를 나타내는 클래스
     '''
     def __init__(self):
+        super().__init__()
         self.lv = 0
         self.xp = 0
         self.next_xp = 0

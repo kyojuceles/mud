@@ -25,6 +25,16 @@ class World:
         assert(self._add_object(player))
         return True
 
+    def del_player(self, player: GameObject) -> bool:
+        assert(isinstance(player, GameObject))
+
+        if player.get_name() not in self._players:
+            return False
+
+        del self._players[player.get_name()]
+        self._del_object(player)
+        return True
+
     def get_player(self, name: str) -> GameObject:
         if name not in self._players:
             return None

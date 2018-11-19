@@ -12,6 +12,9 @@ class GocUpdater(GocUpdaterBase):
     '''
     주기적으로 처리해야 할 기능들을 담당하는 컴포넌트
     '''
+    def __init__(self):
+        super().__init__()
+
     def update(self):
         entity: GocEntity = self.get_component(GocEntity)
         if entity is None:

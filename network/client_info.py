@@ -1,6 +1,4 @@
 #client_info.py
-from .components.gameobject import GameObject
-
 class ClientInfo:
     '''
     클라이언트의 정보를 가지고 있는 클래스
@@ -11,7 +9,7 @@ class ClientInfo:
 
     def __init__(self, is_console: bool):
         self._is_console = is_console
-        self._player = None
+        self._tag = None
         self._status = ClientInfo.STATUS_NOT_CONNECT
 
     def set_status(self, status: int):
@@ -23,8 +21,11 @@ class ClientInfo:
     def is_console(self):
         return self._is_console
 
-    def set_player(self, player: GameObject):
-        self._player = player
+    def set_tag(self, tag):
+        self._tag = tag
 
-    def get_player(self) -> GameObject:
-        return self._player
+    def get_tag(self):
+        return self._tag
+
+    def on_receive(self, msg: str):
+        print(msg, end = '')

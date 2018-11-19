@@ -10,7 +10,7 @@ class GocNetworkBase(Component):
     client로 메시지를 보내는 기능을 담당하는 컴포넌트의 base
     '''
     def __init__(self):
-        pass
+        super().__init__() 
 
     def send(self, msg: str):
         raise NotImplementedError('You should implement Send method.')
@@ -56,21 +56,13 @@ class GocNetworkPass(GocNetworkBase):
     def send(self, msg: str):
         pass
 
-class NetworkConsoleEventBase:
-    ''' 
-    GocNetworkConsole에서 이벤트를 받을때 사용되는 EventHandler의 base 클래스.
-    '''
-    def on_receive(self, msg: str):
-        raise NotImplementedError
-
 class GocNetworkConsole(GocNetworkBase):
     ''' 
     send()를 호출했을때 등록된 NetworkConsoleEventBase instance로 이벤트를 전달하는 클래스
     on_receive(self, msg: str)을 호출하게 되며 Local Player GameObject가 가지게 된다.
     '''   
-    def __init__(self, event: NetworkConsoleEventBase):
-        assert(isinstance(event, NetworkConsoleEventBase))
+    def __init__(self, event):
         self._event = event
 
     def send(self, msg: str):
-        self._event.on_receive(msg)
+        self._event(msg)
