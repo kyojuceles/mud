@@ -2,99 +2,82 @@ import time
 import sys
 import asyncio
 import gamelogic.global_define as global_define
-from network.client_info import ClientInfo
 from gamelogic.processor import GameLogicProcessor
 from gamelogic.global_instance import GameLogicProcessorEvent
 from gamelogic.components import factory
 from gamelogic.utils import async_input
+from gamelogic.client_info import ClientInfo
+from network.network import ConnectionManager
+from network.network import Connection
+from network.network import ConnectionManagerEventBase
 
-class EventProcessor(GameLogicProcessorEvent):
+class MudServer(GameLogicProcessorEvent, ConnectionManagerEventBase):
+    def __init__(self):
+        self._game_logic_processor: GameLogicProcessor = None
+        self._connection_manager: ConnectionManager = None
+        self._loop = None
+        self._tasks = None
+        self._local_client_info = None
+
+    def start(self, listen_addr: str, listen_port: int):
+        self._game_logic_processor = GameLogicProcessor(self)        
+        self._connection_manager = ConnectionManager(self)        
+        self._game_logic_processor.init_test()
+        self._game_logic_processor.start()
+        self._loop = self._connection_manager.start_server('127.0.0.1', 8888)
+        listen_addr = self._connection_manager.get_listen_addr()
+        listen_port = self._connection_manager.get_listen_port()
+        self._game_logic_processor.get_event().event_output('접속을 받기 시작합니다. (%s:%d)\n' % (listen_addr, listen_port))
+        self._tasks = [asyncio.ensure_future(self._update())]
+
+    def loop(self):
+        self._loop.run_until_complete(asyncio.gather(*self._tasks))
+
+    def stop(self):
+        self._connection_manager.close()
+        self._game_logic_processor = None
+        self._connection_manager = None
+        
+    async def _update(self):
+        while True:
+            results = async_input.read()
+            for result in results:
+                self._console_command_process(result) 
+            self._game_logic_processor.update()
+            await asyncio.sleep(0.00001)
+    
+    def _console_command_process(self, command):
+        if command == '종료':
+            return False
+
+        if command == '접속':
+            self._local_client_info = ClientInfo(None, None)
+            self._game_logic_processor.output_welcome_message(self._local_client_info)
+            return True
+
+        if self._local_client_info is None:
+            return True
+
+        self._game_logic_processor.dispatch_message(self._local_client_info, command)
+        return True
 
     def event_output(self, output):
         print('[SYSTEM] ' + output, end = '')
 
-game_logic_processor = GameLogicProcessor(EventProcessor())
-game_logic_processor.init_test()
-game_logic_processor.start()
-client_info_list = []
-current_client_info_index = -1
+    def on_connect(self, connection: 'Connection'):
+        client_info = ClientInfo(connection.send, connection.disconnect)
+        connection.set_extra_data(client_info)
+        self._game_logic_processor.output_welcome_message(client_info)
 
-async def update():
-    global game_logic_processor
-    while True:
-        results = async_input.read()
-        for result in results:
-            console_command_process(result) 
-        game_logic_processor.update()
-        await asyncio.sleep(0.00001)
+    def on_recv(self, connection: 'Connection', msg: str):
+        client_info: ClientInfo = connection.get_extra_data()
+        self._game_logic_processor.dispatch_message(client_info, msg)
 
-def get_current_client_info():
-    global client_info_list
-    global current_client_info_index
+    def on_disconnect(self, connection: 'Connection'):
+        client_info: ClientInfo = connection.get_extra_data()
+        client_info.deinitialize()
 
-    if not client_info_list:
-        return None
-
-    return client_info_list[current_client_info_index]
-
-def console_command_process(command):
-    global client_info_list
-    global current_client_info_index
-
-    if command == '종료':
-        return False
-
-    client_count = len(client_info_list)
-    if command == '접속':
-        new_client_info = ClientInfo(True)
-        new_client_info.set_status(ClientInfo.STATUS_NOT_LOGIN)
-        client_info_list.append(new_client_info)
-        client_count += 1
-        current_client_info_index = client_count - 1
-        game_logic_processor.output_welcome_message(new_client_info)
-        return True
-
-    if client_count <= 0:
-        return True
-
-    client_info = client_info_list[current_client_info_index]
-    if client_info is None:
-        return True
-
-    if command == '캐릭터교체' and client_info.get_status() == ClientInfo.STATUS_LOGIN:
-        current_client_info_index += 1
-        if current_client_info_index >= client_count:
-            current_client_info_index = 0
-
-        game_logic_processor.get_event().event_output(\
-            '%s로 캐릭터를 교체합니다.\n' % get_current_client_info().get_player().get_name())        
-        return True
-    
-    game_logic_processor.dispatch_message(client_info, command)
-    return True
-
-'''
-while(True):
-    is_exit = False
-    results = async_input.read()
-    for result in results:
-        if not console_command_process(result):
-            is_exit = True
-            break
-    
-    if is_exit:
-        break
-
-    game_logic_processor.update()
-    time.sleep(0.00001)
-'''
-#테스트 생성 및 실행
-loop = asyncio.get_event_loop()
-update_task = asyncio.ensure_future(update())
-tasks = [update_task]
-
-loop.run_until_complete(asyncio.gather(*tasks))
-
-game_logic_processor.get_event().event_output('프로그램을 종료합니다.\n')
-
-#테스트
+mud_server = MudServer()
+mud_server.start('127.0.0.1', 8888)
+mud_server.loop()
+mud_server.stop()

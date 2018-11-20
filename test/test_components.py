@@ -10,7 +10,6 @@ from ..gamelogic.processor import GameLogicProcessor
 from ..gamelogic.processor import GameLogicProcessorEvent
 from ..gamelogic.processor import Parser
 from ..gamelogic.components.entity import GocEntity
-from ..gamelogic.components.network import NetworkConsoleEventBase
 from ..gamelogic.tables.level_table import LevelTable
 from ..gamelogic.tables.character_table import CharacterTable
 from ..gamelogic.components.network import GocNetworkBase
@@ -49,14 +48,14 @@ class TestGameLogicProcessorEvent(GameLogicProcessorEvent):
     def event_output(self, output):
         print(output, end = '')
 
-class TestNetworkConsoleEvent(NetworkConsoleEventBase):
+class TestNetworkConsoleEvent():
     
     def on_receive(self, msg):
         print(msg, end = '')
 
 def test_move_with_player():
     processor = GameLogicProcessor(
-        TestGameLogicProcessorEvent(), TestNetworkConsoleEvent())
+        TestGameLogicProcessorEvent())
     processor.start()
     world = processor.get_world()
 
@@ -74,7 +73,7 @@ def test_move_with_player():
     world.add_map(map2)
     world.add_map(map3)
 
-    client_info = ClientInfo(True)
+    client_info = ClientInfo(None, None)
     client_info.set_status(ClientInfo.STATUS_NOT_LOGIN)
     processor.dispatch_message(client_info, '플레이어')
 

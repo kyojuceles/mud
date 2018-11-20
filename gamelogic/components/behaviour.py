@@ -231,8 +231,10 @@ class GocBehaviour(Component):
         dest_map.enter_map(self.get_owner())
 
         entity.set_map(dest_map)
+
+        current_map.broadcast('%s가 %s쪽으로 갑니다.\n' % (self.get_owner_name_title(), dest))
         self.get_component(GocNetworkBase).broadcast_in_map(
-            '%s가 %s쪽으로 갑니다.\n' % (self.get_owner_name_title(), dest), False)
+            '%s가 왔습니다.\n' % self.get_owner_name_title())
         self.get_component(GocNetworkBase).send(dest + '쪽으로 갑니다.\n')
         self.output_current_map_desc()
         return True

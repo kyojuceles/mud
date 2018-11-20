@@ -75,6 +75,12 @@ class Map:
         self._objs.sort(key = lambda obj : obj.get_name())
         return True
 
+    def broadcast(self, msg: str):
+        from ..components.network import GocNetworkBase
+        for obj in self._objs:
+            network_base: GocNetworkBase = obj.get_component(GocNetworkBase)
+            network_base.send(msg)
+
     def get_object(self, name: str) -> GameObject:
         '''
         이름으로 오브젝트를 얻어온다.

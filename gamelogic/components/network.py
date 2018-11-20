@@ -13,7 +13,10 @@ class GocNetworkBase(Component):
         super().__init__() 
 
     def send(self, msg: str):
-        raise NotImplementedError('You should implement Send method.')
+        raise NotImplementedError('You should implement send method.')
+
+    def disconnect(self):
+        raise NotImplementedError('You should implement disconnect method.')
 
     def broadcast_in_map(self, msg: str, is_except_owner: bool = False):
         entity: GocEntity = self.get_component(GocEntity)
@@ -40,11 +43,15 @@ class GocNetwork(GocNetworkBase):
     send()를 호출하면 네트워크상으로 연결된 client에게 메시지를 보내는 컴포넌트.
     Player GameObject들이 가지게 된다.
     '''
-    def __init__(self):
-        pass
+    def __init__(self, client_info):
+        self._send_func = client_info.send
+        self._disconnect = client_info.disconnect
     
     def send(self, msg: str):
-        pass
+        self._send_func(msg)
+
+    def disconnect(self):
+        self._disconnect()
 
 class GocNetworkPass(GocNetworkBase):   
     ''' 
@@ -56,13 +63,5 @@ class GocNetworkPass(GocNetworkBase):
     def send(self, msg: str):
         pass
 
-class GocNetworkConsole(GocNetworkBase):
-    ''' 
-    send()를 호출했을때 등록된 NetworkConsoleEventBase instance로 이벤트를 전달하는 클래스
-    on_receive(self, msg: str)을 호출하게 되며 Local Player GameObject가 가지게 된다.
-    '''   
-    def __init__(self, event):
-        self._event = event
-
-    def send(self, msg: str):
-        self._event(msg)
+    def disconnect(self):
+        pass

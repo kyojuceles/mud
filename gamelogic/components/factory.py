@@ -14,7 +14,6 @@ from .updater import GocUpdater
 from .entity import GocEntity
 from .network import GocNetworkBase
 from .network import GocNetwork
-from .network import GocNetworkConsole
 from .network import GocNetworkPass
 from ..tables.character_table import CharacterTable
 from ..tables.level_table import LevelTable
@@ -30,21 +29,11 @@ def create_object_base(\
     obj.add_component_with_key(GocUpdaterBase, GocUpdater)
     return obj
 
-def create_object_player(name: str, id: int, lv: int, xp: int) -> GameObject:
+def create_object_player(name: str, client_info, id: int, lv: int, xp: int) -> GameObject:
     '''player GameObject를 생성하는 함수'''
     obj = create_object_base(name, True, id, 0)
-    obj.add_component_with_key(GocNetworkBase, GocNetwork)
+    obj.add_component_with_key(GocNetworkBase, GocNetwork, client_info)
     
-    attribute: GocAttribute = obj.get_component(GocAttribute)
-    attribute.set_attribute(lv, xp)
-    attribute.set_hp_full()
-    return obj
-
-def create_console_object(name: str, event, id: int, lv: int, xp: int) -> GameObject:
-    '''console player object를 생성하는 함수'''
-    obj = create_object_base(name, True, id, 0)
-    obj.add_component_with_key(GocNetworkBase, GocNetworkConsole, event)
-
     attribute: GocAttribute = obj.get_component(GocAttribute)
     attribute.set_attribute(lv, xp)
     attribute.set_hp_full()

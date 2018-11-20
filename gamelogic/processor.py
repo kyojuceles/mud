@@ -1,6 +1,6 @@
 import gamelogic.global_define as global_define
 from typing import List, Tuple, Optional
-from network.client_info import ClientInfo
+from .client_info import ClientInfo
 from .global_instance import GlobalInstance
 from .global_instance import GlobalInstanceContainer
 from .global_instance import GameLogicProcessorEvent
@@ -97,7 +97,8 @@ class GameLogicProcessor(GlobalInstanceContainer):
         return self._world
     
     def output_welcome_message(self, client_info: ClientInfo):
-        client_info.on_receive('이름을 입력해주세요.\n')
+        client_info.send('이름을 입력해주세요.\n')
+        client_info.set_status(ClientInfo.STATUS_NOT_LOGIN)
 
     def dispatch_message(self, client_info: ClientInfo, msg: str) -> bool:
         if client_info.get_status() == ClientInfo.STATUS_NOT_CONNECT:
@@ -107,7 +108,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
             return self._dispatch_message_before_login(client_info, msg)
 
         ret = self._dispatch_message_after_login(client_info, msg)
-        player: GameObject = client_info.get_tag()
+        player: GameObject = client_info.get_player()
         behaviour: GocBehaviour = player.get_component(GocBehaviour)
         behaviour.output_command_prompt()
         return ret
@@ -121,16 +122,12 @@ class GameLogicProcessor(GlobalInstanceContainer):
 
         #중복접속 체크 
         if (self._world.get_player(player_name) is not None):
-            GlobalInstance.get_event().event_output('이미 접속중인 이름입니다. 다시 입력해주세요.\n')
+            client_info.send('이미 접속중인 이름입니다. 다시 입력해주세요.\n')
             return False
         
-        if client_info.is_console():
-            player = factory.create_console_object(\
-             player_name, client_info.on_receive, 0, 1, 0)
-        else:
-            player = factory.create_object_player(player_name, 0, 1, 0)
+        player = factory.create_object_player(player_name, client_info, 0, 1, 0)
             
-        client_info.set_tag(player)
+        client_info.set_player(player)
         client_info.set_status(ClientInfo.STATUS_LOGIN)
         self._world.add_player(player)
         player.get_component(GocBehaviour).enter_map(global_define.ENTER_ROOM_ID)
@@ -141,12 +138,12 @@ class GameLogicProcessor(GlobalInstanceContainer):
     def _dispatch_message_after_login(self, client_info: ClientInfo, msg: str) -> bool:
         ret, cmd, args = Parser.cmd_parse(msg)
 
-        player: GameObject = client_info.get_tag()
+        player: GameObject = client_info.get_player()
         if (player is None):
             return False
 
         if not ret:
-            self._event.event_output('잘못된 명령입니다.\n')
+            client_info.send('잘못된 명령입니다.\n')
             return False
         
         behaviour: GocBehaviour = player.get_component(GocBehaviour)
@@ -196,7 +193,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
             behaviour.leave_world()
             return True
 
-        self._event.event_output('잘못된 명령입니다.\n')
+        client_info.send('잘못된 명령입니다.\n')
         return False
 
 class Parser:
