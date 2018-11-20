@@ -97,9 +97,12 @@ class GameLogicProcessor(GlobalInstanceContainer):
     def get_world(self) -> World:
         return self._world
     
-    def output_welcome_message(self, client_info: ClientInfo):
+    def output_connect_message(self, client_info: ClientInfo):
         client_info.send('이름을 입력해주세요.\n')
         client_info.set_status(ClientInfo.STATUS_NOT_LOGIN)
+
+    def output_welcome_message(self, client_info: ClientInfo):
+        client_info.send(global_define.welcome_msg)
 
     def dispatch_message(self, client_info: ClientInfo, msg: str) -> bool:
         if client_info.get_status() == ClientInfo.STATUS_NOT_CONNECT:
@@ -125,9 +128,10 @@ class GameLogicProcessor(GlobalInstanceContainer):
         if (self._world.get_player(player_name) is not None):
             client_info.send('이미 접속중인 이름입니다. 다시 입력해주세요.\n')
             return False
-        
-        player = factory.create_object_player(player_name, client_info, 0, 1, 0)
-            
+
+        self.output_welcome_message(client_info)
+    
+        player = factory.create_object_player(player_name, client_info, 0, 1, 0)        
         client_info.set_player(player)
         client_info.set_status(ClientInfo.STATUS_LOGIN)
         self._world.add_player(player)
@@ -193,6 +197,11 @@ class GameLogicProcessor(GlobalInstanceContainer):
         if cmd in ('나가기', 'exit'):
             network_base: GocNetworkBase = player.get_component(GocNetworkBase)
             network_base.disconnect()
+            return True
+        
+        # 도움말 처리
+        if cmd in ('도움말', 'help'):
+            behaviour.output_help_msg()
             return True
 
         client_info.send('잘못된 명령입니다.\n')

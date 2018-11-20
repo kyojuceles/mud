@@ -280,3 +280,7 @@ class GocBehaviour(Component):
 
         command_prompt = '[%d/%d] ' % (attribute.hp, attribute.max_hp)
         self.get_component(GocNetworkBase).send(command_prompt)
+
+    def output_help_msg(self):
+        network_base: GocNetworkBase = self.get_component(GocNetworkBase)
+        network_base.send(global_define.help_msg)
