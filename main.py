@@ -5,6 +5,7 @@ import gamelogic.global_define as global_define
 from gamelogic.processor import GameLogicProcessor
 from gamelogic.global_instance import GameLogicProcessorEvent
 from gamelogic.components import factory
+from gamelogic.components.behaviour import GocBehaviour
 from gamelogic.utils import async_input
 from gamelogic.client_info import ClientInfo
 from network.network import ConnectionManager
@@ -51,7 +52,7 @@ class MudServer(GameLogicProcessorEvent, ConnectionManagerEventBase):
             return False
 
         if command == '접속':
-            self._local_client_info = ClientInfo(None, None)
+            self._local_client_info = ClientInfo(None, self.on_console_disconnect)
             self._game_logic_processor.output_welcome_message(self._local_client_info)
             return True
 
@@ -65,17 +66,32 @@ class MudServer(GameLogicProcessorEvent, ConnectionManagerEventBase):
         print('[SYSTEM] ' + output, end = '')
 
     def on_connect(self, connection: 'Connection'):
+        '''새로운 접속이 발생했을때의 처리'''
         client_info = ClientInfo(connection.send, connection.disconnect)
         connection.set_extra_data(client_info)
         self._game_logic_processor.output_welcome_message(client_info)
 
     def on_recv(self, connection: 'Connection', msg: str):
+        '''peer로 부터 메시지가 도착했을때의 처리'''
         client_info: ClientInfo = connection.get_extra_data()
         self._game_logic_processor.dispatch_message(client_info, msg)
 
     def on_disconnect(self, connection: 'Connection'):
+        '''접속이 끊겼을때의 처리'''
         client_info: ClientInfo = connection.get_extra_data()
+        player = client_info.get_player()
+        if player:
+            player.get_component(GocBehaviour).leave_world()
         client_info.deinitialize()
+
+    def on_console_disconnect(self):
+        '''콘솔 플레이어가 나가기를 했을때의 처리'''
+        player = self._local_client_info.get_player()
+        if player:
+            player.get_component(GocBehaviour).leave_world()
+            self._local_client_info.send('접속이 종료되었습니다.\n')
+        self._local_client_info.deinitialize()
+        self._local_client_info = None
 
 mud_server = MudServer()
 mud_server.start('127.0.0.1', 8888)

@@ -10,6 +10,7 @@ from .world.world import World
 from .world.map import Map
 from .components.behaviour import GocBehaviour
 from .components.entity import GocEntity
+from .components.network import GocNetworkBase
 from .components import factory
 from .tables.character_table import CharacterTable
 from .tables.level_table import LevelTable
@@ -190,7 +191,8 @@ class GameLogicProcessor(GlobalInstanceContainer):
 
         # 종료 처리
         if cmd in ('나가기', 'exit'):
-            behaviour.leave_world()
+            network_base: GocNetworkBase = player.get_component(GocNetworkBase)
+            network_base.disconnect()
             return True
 
         client_info.send('잘못된 명령입니다.\n')

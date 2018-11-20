@@ -3,6 +3,7 @@ import sys
 import asyncio
 
 class ConnectionManagerEventBase:
+    '''ConnectionManager로 부터 발생하는 이벤트를 받는 클래스'''
     def on_connect(self, connection: 'Connection'):
         raise NotImplementedError
 
@@ -13,12 +14,14 @@ class ConnectionManagerEventBase:
         raise NotImplementedError
 
 class Connection:
+    '''접속이 발생했을때 생성되는 클래스'''
     def __init__(self, writer):
         self._send_queue: asyncio.Queue = asyncio.Queue()
         self._writer = writer
         self._extra_data = None
 
     async def handle_recv(self, reader: asyncio.StreamReader, recv_event):
+        '''peer로 부터 메시지가 도착했을때를 처리하는 coroutine'''
         while True:
             try:
                 data = await reader.readline()
@@ -44,6 +47,7 @@ class Connection:
         await self._send_queue.put(None)
         
     async def handle_send(self, writer: asyncio.StreamWriter):
+        '''send queue에 보낼데이터가 도착하면 peer에게 보내는 coroutine'''
         while True:
             send_data = await self._send_queue.get()
             if send_data is None:
@@ -63,9 +67,11 @@ class Connection:
         self._send_queue.put_nowait(msg.encode())
 
     def set_extra_data(self, extra_data):
+        '''사용하는 측에서 추가적인 정보를 저장하기 위한 method'''
         self._extra_data = extra_data
 
     def get_extra_data(self):
+        '''저장된 추가정보를 리턴하는 method'''
         return self._extra_data        
 
 class ConnectionManager:
@@ -75,6 +81,7 @@ class ConnectionManager:
         self._event = event
 
     async def handle_accept(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+        '''새로운 접속이 발생했을때를 처리하는 coroutine'''
         connection = Connection(writer)
         recv_future = asyncio.create_task(connection.handle_recv(reader, self._event.on_recv))
         send_future = asyncio.create_task(connection.handle_send(writer))
