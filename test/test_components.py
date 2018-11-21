@@ -1,5 +1,6 @@
 import typing
 import gamelogic.global_define as global_define
+import gamelogic.utils.encrypt as encrypt
 from ..gamelogic.components.attribute import GocAttribute
 from ..gamelogic.components.behaviour import GocBehaviour
 from ..gamelogic.components.updater import GocUpdaterBase
@@ -74,8 +75,9 @@ def test_move_with_player():
     world.add_map(map3)
 
     client_info = ClientInfo(None, None)
-    client_info.set_status(ClientInfo.STATUS_NOT_LOGIN)
+    client_info.set_status(ClientInfo.STATUS_LOGIN_NAME)
     processor.dispatch_message(client_info, '플레이어')
+    processor._login(client_info)
 
     player = client_info.get_player()
     entity: GocEntity = player.get_component(GocEntity)
@@ -284,6 +286,11 @@ def test_recovery_by_percent_hp():
     behaviour.recovery_by_percent(10)
     
     assert attribute.hp == 11
+
+def test_sha256_encryption():
+    hash_value = encrypt.encrypt_sha256('abcdefg')
+    assert encrypt.encrypt_sha256('abcdefg') == hash_value
+    assert encrypt.encrypt_sha256('') != hash_value
 
 
 

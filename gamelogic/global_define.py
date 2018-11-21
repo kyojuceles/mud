@@ -26,3 +26,14 @@ help_msg = '[도움말]\n'\
            '[말하기, say] [메시지]\t\t : 방안에 있는 플레이어들에게 메시지를 보낸다.\n'\
            '[외치기, shout] [메시지]\t : 접속한 모든 플레이어들에게 메시지를 보낸다.\n'\
            '[나가기, exit]\t\t\t : 접속을 종료한다.\n'
+
+login_name_msg = '이름을 입력해주세요. \'새로만들기\'를 입력하시면 캐릭터를 생성합니다.\n'
+login_name_duplicate_msg = '이미 접속중인 이름입니다.\n'
+login_password_msg = '패스워드를 입력해주세요.\n'
+create_account_name_msg = '사용할 이름을 입력하세요.(20자이내)\n'
+create_account_password_msg = '사용할 패스워드를 입력하세요.(20자이내)\n'
+login_password_invalid_msg = '패스워드가 잘못 입력되었습니다. 다시 입력해주세요.\n'
+create_account_name_ban_msg = '입력한 이름은 금지단어라 사용할 수 없습니다.\n'
+create_account_name_not_space_msg = '이름에는 공백이 포함되어서는 안됩니다.\n'
+
+ban_account_list = set(['새로만들기'])

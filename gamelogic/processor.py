@@ -1,4 +1,5 @@
 import gamelogic.global_define as global_define
+import gamelogic.utils.encrypt as encrypt
 from typing import List, Tuple, Optional
 from .client_info import ClientInfo
 from .global_instance import GlobalInstance
@@ -97,38 +98,105 @@ class GameLogicProcessor(GlobalInstanceContainer):
     def get_world(self) -> World:
         return self._world
     
-    def output_connect_message(self, client_info: ClientInfo):
-        client_info.send('이름을 입력해주세요.\n')
-        client_info.set_status(ClientInfo.STATUS_NOT_LOGIN)
-
     def output_welcome_message(self, client_info: ClientInfo):
         client_info.send(global_define.welcome_msg)
 
-    def dispatch_message(self, client_info: ClientInfo, msg: str) -> bool:
+    def output_login_name_message(self, client_info: ClientInfo):
+        client_info.send(global_define.login_name_msg)
+        client_info.set_status(ClientInfo.STATUS_LOGIN_NAME)
+
+    def output_login_password_message(self, client_info: ClientInfo):
+        client_info.send(global_define.login_password_msg)
+        client_info.set_status(ClientInfo.STATUS_LOGIN_PASSWORD)
+
+    def output_create_account_name_message(self, client_info: ClientInfo):
+        client_info.send(global_define.create_account_name_msg)
+        client_info.set_status(ClientInfo.STATUS_CREATE_ACCOUNT_NAME)
+
+    def output_create_account_password_message(self, client_info: ClientInfo):
+        client_info.send(global_define.create_account_password_msg)
+        client_info.set_status(ClientInfo.STATUS_CREATE_ACCOUNT_PASSWORD)
+
+    def dispatch_message(self, client_info: ClientInfo, msg: str):
         if client_info.get_status() == ClientInfo.STATUS_NOT_CONNECT:
-            return False
+            return
 
-        if client_info.get_status() == ClientInfo.STATUS_NOT_LOGIN:
-            return self._dispatch_message_before_login(client_info, msg)
+        client_status = client_info.get_status()
 
-        ret = self._dispatch_message_after_login(client_info, msg)
+        #로그인 하기 전의 처리.
+        if client_status == ClientInfo.STATUS_LOGIN_NAME:
+            self._dispatch_message_login_name(client_info, msg)
+            return
+        elif client_status == ClientInfo.STATUS_LOGIN_PASSWORD:
+            self._dispatch_message_login_password(client_info, msg)
+            return
+        elif client_status == ClientInfo.STATUS_CREATE_ACCOUNT_NAME:
+            self._dispatch_message_create_account_name(client_info, msg)
+            return
+        elif client_status == ClientInfo.STATUS_CREATE_ACCOUNT_PASSWORD:
+            self._dispatch_message_create_account_password(client_info, msg)
+            return
+
+        #로그인이 완료된 이후의 처리.
+        self._dispatch_message_after_login(client_info, msg)
         player: GameObject = client_info.get_player()
         behaviour: GocBehaviour = player.get_component(GocBehaviour)
         behaviour.output_command_prompt()
-        return ret
 
-    def _dispatch_message_before_login(self, client_info: ClientInfo, msg: str) -> bool:
+    def _dispatch_message_login_name(self, client_info: ClientInfo, msg: str):
+        '''로그인:계정 입력 단계를 처리'''
         if not msg:
-            return False
+            return
 
-        player_name = msg
+        if msg == '새로만들기':
+            self.output_create_account_name_message(client_info)
+            return
+
+        client_info.set_player_name(msg)
+        self.output_login_password_message(client_info)
+    
+    def _dispatch_message_login_password(self, client_info: ClientInfo, msg: str):
+        '''로그인:패스워드 입력 단계를 처리'''
+        if encrypt.encrypt_sha256(msg) != encrypt.encrypt_sha256('12345'):
+            client_info.send(global_define.login_password_invalid_msg)
+            return
+        
+        if self._check_duplicate_login(client_info.get_player_name()):
+            client_info.send(global_define.create_account_name_ban_msg)
+            return
+
+        self._login(client_info)
+ 
+    def _dispatch_message_create_account_name(self, client_info: ClientInfo, msg: str):
+        '''계정생성:계정 입력 단계를 처리'''
+        if not msg:
+            return
+
+        if msg in global_define.ban_account_list:
+            client_info.send(global_define.create_account_name_ban_msg)
+            return
+
+        client_info.set_player_name(msg)
+        self.output_create_account_password_message(client_info)
+    
+    def _dispatch_message_create_account_password(self, client_info: ClientInfo, msg: str):
+        '''계정생성:패스워드 입력 단계를 처리'''
+        if not msg:
+            return
+
+        if self._check_duplicate_login(client_info.get_player_name()):
+            client_info.send(global_define.login_name_duplicate_msg)
+            self.output_login_name_message(client_info)
+            return
+
+        #계정생성
+
+        #로그인
+        self._login(client_info)
+
+    def _login(self, client_info: ClientInfo):
+        player_name = client_info.get_player_name()
         player: GameObject = None
-
-        #중복접속 체크 
-        if (self._world.get_player(player_name) is not None):
-            client_info.send('이미 접속중인 이름입니다. 다시 입력해주세요.\n')
-            return False
-
         self.output_welcome_message(client_info)
     
         player = factory.create_object_player(player_name, client_info, 0, 1, 0)        
@@ -138,74 +206,78 @@ class GameLogicProcessor(GlobalInstanceContainer):
         player.get_component(GocBehaviour).enter_map(global_define.ENTER_ROOM_ID)
         behaviour: GocBehaviour = player.get_component(GocBehaviour)
         behaviour.output_command_prompt()
-        return True
 
-    def _dispatch_message_after_login(self, client_info: ClientInfo, msg: str) -> bool:
+    def _check_duplicate_login(self, player_name: str) -> bool:
+        if (self._world.get_player(player_name) is not None):
+            return True
+
+        return False
+
+    def _dispatch_message_after_login(self, client_info: ClientInfo, msg: str):
         ret, cmd, args = Parser.cmd_parse(msg)
 
         player: GameObject = client_info.get_player()
         if (player is None):
-            return False
+            return
 
         if not ret:
             client_info.send('잘못된 명령입니다.\n')
-            return False
+            return
         
         behaviour: GocBehaviour = player.get_component(GocBehaviour)
 
         # 이동 처리
         if cmd in ('동', '서', '남', '북', 'e', 'w', 's', 'n'):
             behaviour.move_map(cmd)
-            return True
+            return
 
         # 공격 처리
         if cmd in ('공격', 'attack'):
             behaviour.start_battle(args[0])
-            return True
+            return
 
         # 맵 보기 처리
         if cmd in ('본다', 'see'):
             behaviour.output_current_map_desc()
-            return True
+            return
 
         # 플레이어 상태 보기 처리
         if cmd in ('상태', 'status'):
             behaviour.output_status()
-            return True
+            return
 
         # 도망 처리
         if cmd in ('도망', 'flee'):
             behaviour.flee()
-            return True
+            return
 
         # 재시작 처리
         if cmd in ('재시작', 'respawn'):
             behaviour.respawn()
-            return True
+            return
 
         # 말하기 처리
         if cmd in ('말하기', 'say'):
             behaviour.say(args[0])
-            return True
+            return
 
         # 외치기 처리
         if cmd in ('외치기', 'shout'):
             behaviour.say_to_world(args[0])
-            return True
+            return
 
         # 종료 처리
         if cmd in ('나가기', 'exit'):
             network_base: GocNetworkBase = player.get_component(GocNetworkBase)
             network_base.disconnect()
-            return True
+            return
         
         # 도움말 처리
         if cmd in ('도움말', 'help'):
             behaviour.output_help_msg()
-            return True
+            return
 
         client_info.send('잘못된 명령입니다.\n')
-        return False
 
 class Parser:
     arg_infos_list =\

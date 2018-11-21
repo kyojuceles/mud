@@ -53,7 +53,7 @@ class MudServer(GameLogicProcessorEvent, ConnectionManagerEventBase):
 
         if command == '접속':
             self._local_client_info = ClientInfo(None, self.on_console_disconnect)
-            self._game_logic_processor.output_connect_message(self._local_client_info)
+            self._game_logic_processor.output_login_name_message(self._local_client_info)
             return True
 
         if self._local_client_info is None:
@@ -69,7 +69,7 @@ class MudServer(GameLogicProcessorEvent, ConnectionManagerEventBase):
         '''새로운 접속이 발생했을때의 처리'''
         client_info = ClientInfo(connection.send, connection.disconnect)
         connection.set_extra_data(client_info)
-        self._game_logic_processor.output_connect_message(client_info)
+        self._game_logic_processor.output_login_name_message(client_info)
 
     def on_recv(self, connection: 'Connection', msg: str):
         '''peer로 부터 메시지가 도착했을때의 처리'''
