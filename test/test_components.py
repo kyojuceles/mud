@@ -1,4 +1,5 @@
 import typing
+import asyncio
 import gamelogic.global_define as global_define
 import gamelogic.utils.encrypt as encrypt
 from ..gamelogic.components.attribute import GocAttribute
@@ -74,10 +75,11 @@ def test_move_with_player():
     world.add_map(map2)
     world.add_map(map3)
 
+    loop = asyncio.get_event_loop()
+
     client_info = ClientInfo()
-    client_info.set_status(ClientInfo.STATUS_LOGIN_NAME)
-    processor.dispatch_message(client_info, '플레이어')
-    processor._login(client_info)
+    client_info.set_player_name('플레이어')
+    processor._login(client_info, 0, 1, 0, -1)
 
     player = client_info.get_player()
     entity: GocEntity = player.get_component(GocEntity)
@@ -87,29 +89,29 @@ def test_move_with_player():
     assert player == current_map.get_object(player.get_name())
 
     prev_map = current_map
-    processor.dispatch_message(client_info, '남')
+    loop.run_until_complete(processor.dispatch_message(client_info, '남'))
     current_map = entity.get_map()
     assert prev_map.get_object(player.get_name()) == None
     assert current_map is not None
     assert current_map.get_id() == '광장_00_01'
     assert player == current_map.get_object(player.get_name())
     
-    processor.dispatch_message(client_info, '하늘')
+    loop.run_until_complete(processor.dispatch_message(client_info, '하늘'))
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_01'
 
-    processor.dispatch_message(client_info, '북')
+    loop.run_until_complete(processor.dispatch_message(client_info, '북'))
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_00'
 
-    processor.dispatch_message(client_info, '북')
+    loop.run_until_complete(processor.dispatch_message(client_info, '북'))
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_02'
 
-    processor.dispatch_message(client_info, '남')
+    loop.run_until_complete(processor.dispatch_message(client_info, '남'))
     current_map = entity.get_map()
     assert current_map is not None
     assert current_map.get_id() == '광장_00_00'
@@ -215,9 +217,10 @@ def test_start_battle_with_behaviour():
     assert attacker.get_component(GocEntity).get_status() == GocEntity.STATUS_BATTLE
     assert target.get_component(GocEntity).get_status() == GocEntity.STATUS_IDLE
 
+    loop = asyncio.get_event_loop()
     for _ in range(0, 10):
-        attacker.get_component(GocUpdaterBase).update()
-        target.get_component(GocUpdaterBase).update()
+        loop.run_until_complete(attacker.get_component(GocUpdaterBase).update())
+        loop.run_until_complete(target.get_component(GocUpdaterBase).update())
 
     assert attacker.get_component(GocEntity).get_status() == GocEntity.STATUS_BATTLE
     assert target.get_component(GocEntity).get_status() == GocEntity.STATUS_BATTLE        

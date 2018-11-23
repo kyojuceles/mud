@@ -55,11 +55,11 @@ class MudServer(GameLogicProcessorEvent, ConnectionManagerEventBase):
         while True:
             results = async_input.read()
             for result in results:
-                self._console_command_process(result) 
-            self._game_logic_processor.update()
+                await self._console_command_process(result) 
+            await self._game_logic_processor.update()
             await asyncio.sleep(0.00001)
     
-    def _console_command_process(self, command):
+    async def _console_command_process(self, command):
         if command == '종료':
             return False
 
@@ -71,24 +71,24 @@ class MudServer(GameLogicProcessorEvent, ConnectionManagerEventBase):
         if self._local_client_info is None:
             return True
 
-        self._game_logic_processor.dispatch_message(self._local_client_info, command)
+        await self._game_logic_processor.dispatch_message(self._local_client_info, command)
         return True
 
     def event_output(self, output):
         print('[SYSTEM] ' + output, end = '')
 
-    def on_connect(self, connection: 'Connection'):
+    async def on_connect(self, connection: 'Connection'):
         '''새로운 접속이 발생했을때의 처리'''
         client_info = ClientInfo(connection.send, connection.disconnect, connection.set_echo_mode)
         connection.set_extra_data(client_info)
         self._game_logic_processor.output_login_name_message(client_info)
 
-    def on_recv(self, connection: 'Connection', msg: str):
+    async def on_recv(self, connection: 'Connection', msg: str):
         '''peer로 부터 메시지가 도착했을때의 처리'''
         client_info: ClientInfo = connection.get_extra_data()
-        self._game_logic_processor.dispatch_message(client_info, msg)
+        await self._game_logic_processor.dispatch_message(client_info, msg)
 
-    def on_disconnect(self, connection: 'Connection'):
+    async def on_disconnect(self, connection: 'Connection'):
         '''접속이 끊겼을때의 처리'''
         client_info: ClientInfo = connection.get_extra_data()
         player = client_info.get_player()

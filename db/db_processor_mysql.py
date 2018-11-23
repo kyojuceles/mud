@@ -35,22 +35,24 @@ async def is_connect_db():
 
     return True
 
-async def create_account(name: str, password: str) -> bool:
+async def create_account(name: str, password: str):
     '''db에 계정을 생성한다.'''
     global _pool
+    uid = -1
     async with await _pool.Connection() as conn:
         try:
             async with conn.cursor() as cursor:
                 await cursor.execute(\
-                    "INSERT INTO player (name, password, lv, xp) values ('%s', '%s', 1, 0)"\
+                    "INSERT INTO player (name, password, lv, xp, hp) values ('%s', '%s', 1, 0, 100)"\
                     % (name, password))
+                uid = conn.insert_id()
         except Exception as ex:
             await conn.rollback()
             _error_report(ex)
-            return False  
+            return False, -1  
         await conn.commit()
 
-    return True
+    return True, uid
 
 async def get_player_info(name: str) -> tuple:
     '''db에서 플레이어 정보를 얻어온다.'''
@@ -58,7 +60,7 @@ async def get_player_info(name: str) -> tuple:
     async with await _pool.Connection() as conn:
         try:
             async with conn.cursor() as cursor:
-                await cursor.execute("SELECT * FROM player where name = '%s'" % name)
+                await cursor.execute("SELECT uid, name, password, lv, xp, hp FROM player where name = '%s'" % name)
                 data = cursor.fetchone()
         except Exception as ex:
             _error_report(ex)
@@ -76,7 +78,20 @@ async def update_level_and_xp(name: str, lv: int, xp: int):
         try:
             async with conn.cursor() as cursor:
                 await cursor.execute("UPDATE player SET lv=%d, xp=%d where name = '%s'" % (lv, xp, name))
-                data = cursor.fetchone()
+        except Exception as ex:
+            _error_report(ex)
+            return False
+        await conn.commit() 
+
+    return True
+
+async def update_hp(name: str, hp: int):
+    '''hp 정보를 업데이트 한다.'''
+    global _pool
+    async with await _pool.Connection() as conn:
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("UPDATE player SET hp=%d where name = '%s'" % (hp, name))
         except Exception as ex:
             _error_report(ex)
             return False

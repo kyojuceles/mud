@@ -1,5 +1,6 @@
 import gamelogic.global_define as global_define
 import gamelogic.utils.encrypt as encrypt
+import db.db_processor_mysql as db_processor
 from typing import List, Tuple, Optional
 from .client_info import ClientInfo
 from .global_instance import GlobalInstance
@@ -12,6 +13,7 @@ from .world.map import Map
 from .components.behaviour import GocBehaviour
 from .components.entity import GocEntity
 from .components.network import GocNetworkBase
+from .components.database import GocDatabase
 from .components import factory
 from .tables.character_table import CharacterTable
 from .tables.level_table import LevelTable
@@ -78,19 +80,21 @@ class GameLogicProcessor(GlobalInstanceContainer):
         self._is_start = False
         GlobalInstance.get_event().event_output('서버를 종료합니다\n')
 
-    def update(self):
+    async def update(self):
         #게임을 종료한 플레이어 처리.
         player_objs = self._world.get_player_list()
         for player_obj in player_objs:
             entity: GocEntity = player_obj.get_component(GocEntity)
             if entity.is_destroy():
+                #종료시에 필요한 database 업데이트
+                await player_obj.get_component(GocDatabase).update_hp()
                 self._world.del_player(player_obj)
 
         if not self._is_start:
             return
 
         if self._update_timer.is_signal():
-            self._world.update()
+            await self._world.update()
 
     def get_event(self) -> GameLogicProcessorEvent:
         return self._event
@@ -119,7 +123,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
         client_info.set_status(ClientInfo.STATUS_CREATE_ACCOUNT_PASSWORD)
         client_info.set_echo_mode(False)
 
-    def dispatch_message(self, client_info: ClientInfo, msg: str):
+    async def dispatch_message(self, client_info: ClientInfo, msg: str):
         if client_info.get_status() == ClientInfo.STATUS_NOT_CONNECT:
             return
 
@@ -127,25 +131,25 @@ class GameLogicProcessor(GlobalInstanceContainer):
 
         #로그인 하기 전의 처리.
         if client_status == ClientInfo.STATUS_LOGIN_NAME:
-            self._dispatch_message_login_name(client_info, msg)
+            await self._dispatch_message_login_name(client_info, msg)
             return
         elif client_status == ClientInfo.STATUS_LOGIN_PASSWORD:
-            self._dispatch_message_login_password(client_info, msg)
+            await self._dispatch_message_login_password(client_info, msg)
             return
         elif client_status == ClientInfo.STATUS_CREATE_ACCOUNT_NAME:
-            self._dispatch_message_create_account_name(client_info, msg)
+            await self._dispatch_message_create_account_name(client_info, msg)
             return
         elif client_status == ClientInfo.STATUS_CREATE_ACCOUNT_PASSWORD:
-            self._dispatch_message_create_account_password(client_info, msg)
+            await self._dispatch_message_create_account_password(client_info, msg)
             return
 
         #로그인이 완료된 이후의 처리.
-        self._dispatch_message_after_login(client_info, msg)
+        await self._dispatch_message_after_login(client_info, msg)
         player: GameObject = client_info.get_player()
         behaviour: GocBehaviour = player.get_component(GocBehaviour)
         behaviour.output_command_prompt()
 
-    def _dispatch_message_login_name(self, client_info: ClientInfo, msg: str):
+    async def _dispatch_message_login_name(self, client_info: ClientInfo, msg: str):
         '''로그인:계정 입력 단계를 처리'''
         if not msg:
             return
@@ -154,24 +158,53 @@ class GameLogicProcessor(GlobalInstanceContainer):
             self.output_create_account_name_message(client_info)
             return
 
-        client_info.set_player_name(msg)
-        self.output_login_password_message(client_info)
-    
-    def _dispatch_message_login_password(self, client_info: ClientInfo, msg: str):
-        '''로그인:패스워드 입력 단계를 처리'''
-        if encrypt.encrypt_sha256(msg) != encrypt.encrypt_sha256('12345'):
-            client_info.send(global_define.login_password_invalid_msg)
-            return
-        
+        #중복접속 체크
         if self._check_duplicate_login(client_info.get_player_name()):
             client_info.send(global_define.login_name_duplicate_msg)
             self.output_login_name_message(client_info)
             client_info.set_echo_mode(True)
             return
 
-        self._login(client_info)
+        #존재하는 계정인지 체크한다.
+        result = await db_processor.get_player_info(msg)
+        if not result:
+            client_info.send(global_define.login_name_not_exist_msg)
+            return
+
+        client_info.set_player_name(msg)
+        self.output_login_password_message(client_info)
+    
+    async def _dispatch_message_login_password(self, client_info: ClientInfo, msg: str):
+        '''로그인:패스워드 입력 단계를 처리'''
+        player_name = client_info.get_player_name()
+        result = await db_processor.get_player_info(player_name)
+        if not result:
+            client_info.send(global_define.login_fail_msg)
+            self.output_login_name_message(client_info)
+            client_info.set_echo_mode(True)
+            return
+
+        db_password = result[2]
+        player_uid = result[1]
+        lv = result[3]
+        xp = result[4]
+        hp = result[5]
+
+        #패스워드 체크
+        if encrypt.encrypt_sha256(msg) != db_password:
+            client_info.send(global_define.login_password_invalid_msg)
+            return
+
+        #중복접속 체크
+        if self._check_duplicate_login(client_info.get_player_name()):
+            client_info.send(global_define.login_name_duplicate_msg)
+            self.output_login_name_message(client_info)
+            client_info.set_echo_mode(True)
+            return
+
+        self._login(client_info, player_uid, lv, xp, hp)
  
-    def _dispatch_message_create_account_name(self, client_info: ClientInfo, msg: str):
+    async def _dispatch_message_create_account_name(self, client_info: ClientInfo, msg: str):
         '''계정생성:계정 입력 단계를 처리'''
         if not msg:
             return
@@ -179,33 +212,46 @@ class GameLogicProcessor(GlobalInstanceContainer):
         if msg in global_define.ban_account_list:
             client_info.send(global_define.create_account_name_ban_msg)
             return
+        
+        #존재하는 계정인지 체크한다.
+        result = await db_processor.get_player_info(msg)
+        if result:
+            client_info.send(global_define.create_account_name_already)
+            return
 
         client_info.set_player_name(msg)
         self.output_create_account_password_message(client_info)
     
-    def _dispatch_message_create_account_password(self, client_info: ClientInfo, msg: str):
+    async def _dispatch_message_create_account_password(self, client_info: ClientInfo, msg: str):
         '''계정생성:패스워드 입력 단계를 처리'''
         if not msg:
             return
 
-        if self._check_duplicate_login(client_info.get_player_name()):
+        player_name = client_info.get_player_name()
+        if self._check_duplicate_login(player_name):
             client_info.send(global_define.login_name_duplicate_msg)
             self.output_login_name_message(client_info)
             client_info.set_echo_mode(True)
             return
 
         #계정생성
-
+        encrypt_password = encrypt.encrypt_sha256(msg)
+        result, uid = await db_processor.create_account(player_name, encrypt_password)
+        if not result:
+            client_info.send(global_define.create_account_fail_msg)
+            self.output_login_name_message(client_info)
+            client_info.set_echo_mode(True)
+            return
         #로그인
-        self._login(client_info)
+        self._login(client_info, uid, 1, 0, -1)
 
-    def _login(self, client_info: ClientInfo):
+    def _login(self, client_info: ClientInfo, id: int, lv: int, xp: int, hp):
         client_info.set_echo_mode(True)
         player_name = client_info.get_player_name()
         player: GameObject = None
         self.output_welcome_message(client_info)
     
-        player = factory.create_object_player(player_name, client_info, 0, 1, 0)        
+        player = factory.create_object_player(player_name, client_info, id, lv, xp, hp)        
         client_info.set_player(player)
         client_info.set_status(ClientInfo.STATUS_LOGIN)
         self._world.add_player(player)
@@ -219,7 +265,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
 
         return False
 
-    def _dispatch_message_after_login(self, client_info: ClientInfo, msg: str):
+    async def _dispatch_message_after_login(self, client_info: ClientInfo, msg: str):
         ret, cmd, args = Parser.cmd_parse(msg)
 
         player: GameObject = client_info.get_player()

@@ -63,5 +63,5 @@ class GocNetworkPass(GocNetworkBase):
     def send(self, msg: str):
         pass
 
-    def disconnect(self):
+    async def disconnect(self):
         pass

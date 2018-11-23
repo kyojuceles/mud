@@ -8,6 +8,7 @@ import gamelogic.global_define as global_define
 from .gameobject import GameObject
 from .behaviour import GocBehaviour
 from .attribute import GocAttribute
+from .database import GocDatabase
 from .team_attribute import GocTeamAttribute
 from .updater_base import GocUpdaterBase
 from .updater import GocUpdater
@@ -29,14 +30,18 @@ def create_object_base(\
     obj.add_component_with_key(GocUpdaterBase, GocUpdater)
     return obj
 
-def create_object_player(name: str, client_info, id: int, lv: int, xp: int) -> GameObject:
+def create_object_player(name: str, client_info, id: int, lv: int, xp: int, hp: int) -> GameObject:
     '''player GameObject를 생성하는 함수'''
     obj = create_object_base(name, True, id, 0)
     obj.add_component_with_key(GocNetworkBase, GocNetwork, client_info)
+    obj.add_component(GocDatabase)
     
     attribute: GocAttribute = obj.get_component(GocAttribute)
     attribute.set_attribute(lv, xp)
-    attribute.set_hp_full()
+    if hp < 0:
+        attribute.set_hp_full()
+    else:
+        attribute.set_hp(hp)
     return obj
 
 def create_object_npc_with_attribute(\

@@ -63,7 +63,7 @@ class World:
 
         return self._maps[id]
 
-    def update(self):
+    async def update(self):
         for map in self._maps.values():
             map.update()
 
@@ -78,12 +78,9 @@ class World:
         for obj in self._objs:
             updater: GocUpdaterBase = obj.get_component(GocUpdaterBase)
             if updater is not None:
-                updater.update()
+                await updater.update()
                 if is_recovery_tick:
                     updater.update_recovery()
-
-
-
 
     def _add_object(self, obj: GameObject) -> bool:
         if obj in self._objs:

@@ -1,4 +1,5 @@
 #updater.py
+import db.db_processor_mysql as db_processor
 from ..global_instance import GlobalInstance
 from .updater_base import GocUpdaterBase
 from .attribute import GocAttribute
@@ -15,14 +16,14 @@ class GocUpdater(GocUpdaterBase):
     def __init__(self):
         super().__init__()
 
-    def update(self):
+    async def update(self):
         entity: GocEntity = self.get_component(GocEntity)
         if entity is None:
             return
 
         status = entity.get_status()
         if status == GocEntity.STATUS_BATTLE:
-            self._status_battle_update()
+            await self._status_battle_update()
 
         self._reset_update()
 
@@ -39,7 +40,7 @@ class GocUpdater(GocUpdaterBase):
         entity: GocEntity = self.get_component(GocEntity)
         entity.reset_flee()
 
-    def _status_battle_update(self):
+    async def _status_battle_update(self):
         entity: GocEntity = self.get_component(GocEntity)
         target = entity.get_target()
 
@@ -84,7 +85,10 @@ class GocUpdater(GocUpdaterBase):
                 # 레벨업 처리.
                 if is_level_up:
                      self.get_component(GocNetworkBase).send('레벨이 상승했습니다. 축하합니다!\n')
-        
+
+                #db에서 레벨과 경험치를 업데이트 한다.
+                await db_processor.update_level_and_xp(self.get_owner_name(), attribute.lv, attribute.xp)
+
         behaviour.output_command_prompt()
 
 

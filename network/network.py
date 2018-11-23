@@ -4,13 +4,13 @@ import asyncio
 
 class ConnectionManagerEventBase:
     '''ConnectionManager로 부터 발생하는 이벤트를 받는 클래스'''
-    def on_connect(self, connection: 'Connection'):
+    async def on_connect(self, connection: 'Connection'):
         raise NotImplementedError
 
-    def on_recv(self, connection: 'Connection', msg: str):
+    async def on_recv(self, connection: 'Connection', msg: str):
         raise NotImplementedError
 
-    def on_disconnect(self, connection: 'Connection'):
+    async def on_disconnect(self, connection: 'Connection'):
         raise NotImplementedError
 
 class Connection:
@@ -41,7 +41,7 @@ class Connection:
                 continue
           
             replace_msg = msg.replace('\r\n', '')
-            recv_event(self, replace_msg)
+            await recv_event(self, replace_msg)
 
         self.disconnect()
         await self._send_queue.put(None)
@@ -92,12 +92,12 @@ class ConnectionManager:
         recv_future = asyncio.create_task(connection.handle_recv(reader, self._event.on_recv))
         send_future = asyncio.create_task(connection.handle_send(writer))
 
-        self._event.on_connect(connection)
+        await self._event.on_connect(connection)
 
         await recv_future
         await send_future
 
-        self._event.on_disconnect(connection)
+        await self._event.on_disconnect(connection)
 
     def start_server(self, listen_addr: str, port: int, loop):
         coro = asyncio.start_server(self.handle_accept, listen_addr, port, loop=loop)
@@ -115,14 +115,14 @@ class ConnectionManager:
         return self._server.sockets[0].getsockname()[1]
     
 class ConnectionManagerEventTest(ConnectionManagerEventBase):
-    def on_disconnect(self, connection: Connection):
+    async def on_disconnect(self, connection: Connection):
         print('disconnect')
 
-    def on_recv(self, connection: Connection, msg: str):
+    async def on_recv(self, connection: Connection, msg: str):
         replace_msg = msg.replace('\r\n', '\n')
         print('recv : ' + replace_msg)
 
-    def on_connect(self, connection: Connection):
+    async def on_connect(self, connection: Connection):
         print('connect')   
 
 if __name__ == '__main__': 

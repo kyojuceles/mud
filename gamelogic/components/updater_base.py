@@ -8,7 +8,7 @@ class GocUpdaterBase(Component):
     def __init__(self):
         pass
 
-    def update(self):
+    async def update(self):
         raise NotImplementedError('you should implement update method')
 
     def update_recovery(self):
