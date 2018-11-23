@@ -2,6 +2,7 @@
 import db.db_processor_mysql as db_processor
 from ..global_instance import GlobalInstance
 from .updater_base import GocUpdaterBase
+from .database import GocDatabase
 from .attribute import GocAttribute
 from .team_attribute import GocTeamAttribute
 from .behaviour import GocBehaviour
@@ -87,7 +88,7 @@ class GocUpdater(GocUpdaterBase):
                      self.get_component(GocNetworkBase).send('레벨이 상승했습니다. 축하합니다!\n')
 
                 #db에서 레벨과 경험치를 업데이트 한다.
-                await db_processor.update_level_and_xp(self.get_owner_name(), attribute.lv, attribute.xp)
+                await self.get_component(GocDatabase).update_level_and_xp()
 
         behaviour.output_command_prompt()
 

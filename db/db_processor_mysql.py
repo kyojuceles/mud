@@ -43,7 +43,7 @@ async def create_account(name: str, password: str):
         try:
             async with conn.cursor() as cursor:
                 await cursor.execute(\
-                    "INSERT INTO player (name, password, lv, xp, hp) values ('%s', '%s', 1, 0, 100)"\
+                    "INSERT INTO player (name, password, lv, xp, hp) values ('%s', '%s', 1, 0, 150)"\
                     % (name, password))
                 uid = conn.insert_id()
         except Exception as ex:
