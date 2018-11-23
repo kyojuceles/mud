@@ -108,6 +108,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
     def output_login_password_message(self, client_info: ClientInfo):
         client_info.send(global_define.login_password_msg)
         client_info.set_status(ClientInfo.STATUS_LOGIN_PASSWORD)
+        client_info.set_echo_mode(False)
 
     def output_create_account_name_message(self, client_info: ClientInfo):
         client_info.send(global_define.create_account_name_msg)
@@ -116,6 +117,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
     def output_create_account_password_message(self, client_info: ClientInfo):
         client_info.send(global_define.create_account_password_msg)
         client_info.set_status(ClientInfo.STATUS_CREATE_ACCOUNT_PASSWORD)
+        client_info.set_echo_mode(False)
 
     def dispatch_message(self, client_info: ClientInfo, msg: str):
         if client_info.get_status() == ClientInfo.STATUS_NOT_CONNECT:
@@ -148,7 +150,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
         if not msg:
             return
 
-        if msg == '새로만들기':
+        if msg in ['새로만들기', 'register']:
             self.output_create_account_name_message(client_info)
             return
 
@@ -162,7 +164,9 @@ class GameLogicProcessor(GlobalInstanceContainer):
             return
         
         if self._check_duplicate_login(client_info.get_player_name()):
-            client_info.send(global_define.create_account_name_ban_msg)
+            client_info.send(global_define.login_name_duplicate_msg)
+            self.output_login_name_message(client_info)
+            client_info.set_echo_mode(True)
             return
 
         self._login(client_info)
@@ -187,6 +191,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
         if self._check_duplicate_login(client_info.get_player_name()):
             client_info.send(global_define.login_name_duplicate_msg)
             self.output_login_name_message(client_info)
+            client_info.set_echo_mode(True)
             return
 
         #계정생성
@@ -195,6 +200,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
         self._login(client_info)
 
     def _login(self, client_info: ClientInfo):
+        client_info.set_echo_mode(True)
         player_name = client_info.get_player_name()
         player: GameObject = None
         self.output_welcome_message(client_info)

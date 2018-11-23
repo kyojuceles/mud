@@ -74,7 +74,7 @@ def test_move_with_player():
     world.add_map(map2)
     world.add_map(map3)
 
-    client_info = ClientInfo(None, None)
+    client_info = ClientInfo()
     client_info.set_status(ClientInfo.STATUS_LOGIN_NAME)
     processor.dispatch_message(client_info, '플레이어')
     processor._login(client_info)

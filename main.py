@@ -1,6 +1,7 @@
 import time
 import sys
 import asyncio
+import db.db_processor_mysql as db_processor
 import gamelogic.global_define as global_define
 from gamelogic.processor import GameLogicProcessor
 from gamelogic.global_instance import GameLogicProcessorEvent
@@ -20,16 +21,26 @@ class MudServer(GameLogicProcessorEvent, ConnectionManagerEventBase):
         self._tasks = None
         self._local_client_info = None
 
-    def start(self, listen_addr: str, listen_port: int):
+    def start(self, listen_addr: str, listen_port: int) -> bool:
+        loop = asyncio.get_event_loop()
+        self._loop = loop
+
+        self.event_output('DB server에 접속합니다.\n')
+        if not db_processor.connect_db_server('127.0.0.1', 'root', 'Mysql12345', 'mud_db', loop):
+            return False
+        self.event_output('DB server에 접속했습니다.\n')
+
+        db_processor.set_log_handler(self.event_output)
         self._game_logic_processor = GameLogicProcessor(self)        
-        self._connection_manager = ConnectionManager(self)        
+        self._connection_manager = ConnectionManager(self)     
         self._game_logic_processor.init_test()
         self._game_logic_processor.start()
-        self._loop = self._connection_manager.start_server('127.0.0.1', 8888)
+        self._connection_manager.start_server('127.0.0.1', 8888, loop)
         listen_addr = self._connection_manager.get_listen_addr()
         listen_port = self._connection_manager.get_listen_port()
         self._game_logic_processor.get_event().event_output('접속을 받기 시작합니다. (%s:%d)\n' % (listen_addr, listen_port))
         self._tasks = [asyncio.ensure_future(self._update())]
+        return True
 
     def loop(self):
         self._loop.run_until_complete(asyncio.gather(*self._tasks))
@@ -38,6 +49,7 @@ class MudServer(GameLogicProcessorEvent, ConnectionManagerEventBase):
         self._connection_manager.close()
         self._game_logic_processor = None
         self._connection_manager = None
+        db_processor.close()
         
     async def _update(self):
         while True:
@@ -67,7 +79,7 @@ class MudServer(GameLogicProcessorEvent, ConnectionManagerEventBase):
 
     def on_connect(self, connection: 'Connection'):
         '''새로운 접속이 발생했을때의 처리'''
-        client_info = ClientInfo(connection.send, connection.disconnect)
+        client_info = ClientInfo(connection.send, connection.disconnect, connection.set_echo_mode)
         connection.set_extra_data(client_info)
         self._game_logic_processor.output_login_name_message(client_info)
 

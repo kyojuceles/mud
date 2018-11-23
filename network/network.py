@@ -24,7 +24,7 @@ class Connection:
         '''peer로 부터 메시지가 도착했을때를 처리하는 coroutine'''
         while True:
             try:
-                data = await reader.readline()
+                data = await reader.read(1024)
             except ConnectionResetError:
                 break
             except BrokenPipeError:
@@ -72,7 +72,13 @@ class Connection:
 
     def get_extra_data(self):
         '''저장된 추가정보를 리턴하는 method'''
-        return self._extra_data        
+        return self._extra_data
+
+    def set_echo_mode(self, is_enable: bool):
+        if is_enable:
+            self._send_queue.put_nowait(bytes([0xff, 0xfc, 0x01]))
+        else:
+            self._send_queue.put_nowait(bytes([0xff, 0xfb, 0x01]))
 
 class ConnectionManager:
     def __init__(self, event: ConnectionManagerEventBase):
@@ -93,12 +99,10 @@ class ConnectionManager:
 
         self._event.on_disconnect(connection)
 
-    def start_server(self, listen_addr: str, port: int) -> asyncio.AbstractEventLoop:
-        loop = asyncio.get_event_loop()
+    def start_server(self, listen_addr: str, port: int, loop):
         coro = asyncio.start_server(self.handle_accept, listen_addr, port, loop=loop)
         self._server = loop.run_until_complete(coro)
         self._loop = loop
-        return loop
 
     def close(self):
         self._server.close()
@@ -122,8 +126,9 @@ class ConnectionManagerEventTest(ConnectionManagerEventBase):
         print('connect')   
 
 if __name__ == '__main__': 
+    loop = asyncio.get_event_loop()
     connection_manager = ConnectionManager(ConnectionManagerEventTest())
-    loop = connection_manager.start_server('127.0.0.1', 8888)
+    connection_manager.start_server('127.0.0.1', 8888, loop)
     try:
         loop.run_forever()
     except KeyboardInterrupt:
