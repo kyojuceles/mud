@@ -2,12 +2,15 @@ import typing
 import asyncio
 import gamelogic.global_define as global_define
 import gamelogic.utils.encrypt as encrypt
+from ..gamelogic.global_instance import GlobalInstance
+from ..gamelogic.global_instance import GlobalInstanceContainer
 from ..gamelogic.components.attribute import GocAttribute
 from ..gamelogic.components.behaviour import GocBehaviour
 from ..gamelogic.components.updater import GocUpdaterBase
 from ..gamelogic.components import factory
 from ..gamelogic.world.world import World
-from ..gamelogic.world.map   import Map
+from ..gamelogic.world.map import Map
+from ..gamelogic.world.map import RespawnInfo
 from ..gamelogic.processor import GameLogicProcessor
 from ..gamelogic.processor import GameLogicProcessorEvent
 from ..gamelogic.processor import Parser
@@ -16,6 +19,7 @@ from ..gamelogic.tables.level_table import LevelTable
 from ..gamelogic.tables.character_table import CharacterTable
 from ..gamelogic.components.network import GocNetworkBase
 from ..gamelogic.client_info import ClientInfo
+from ..gamelogic.tables.character_table import CharacterTable
 
 def test_has_components_with_create_hero():
     hero = factory.create_object_npc_with_attribute('hero', -1, 100, 10, 1, 1, 0)
@@ -33,7 +37,7 @@ def test_has_components_with_create_hero():
 def test_player_after_add_player_to_world():
     player = factory.create_object_npc_with_attribute('player', -1, 100, 10, 1, 1, 0)
     world = World()
-    world.add_player(player)
+    world.add_object(player, True)
 
     assert world.get_player('player') is not None
     assert world.get_player('player2') is None
@@ -294,6 +298,55 @@ def test_sha256_encryption():
     hash_value = encrypt.encrypt_sha256('abcdefg')
     assert encrypt.encrypt_sha256('abcdefg') == hash_value
     assert encrypt.encrypt_sha256('') != hash_value
+
+class GlobalInstanceContainerTest(GlobalInstanceContainer):
+    def __init__(self, world):
+        self._world = world
+        GlobalInstance.set_global_instance_container(self)
+
+    def get_event(self):
+        return self.output_event
+
+    def get_world(self):
+        return self._world
+
+    def output_event(self, msg):
+        pass
+
+def test_respawn_npcs():
+    GlobalInstance.set_global_instance_container(None)
+    global_instance: GlobalInstanceContainerTest = GlobalInstanceContainerTest(World())
+    CharacterTable.initialize()
+    CharacterTable.instance().init_test()
+
+    respawn_info_list = []
+    respawn_info_list.append(RespawnInfo(100000, 2))
+    respawn_info_list.append(RespawnInfo(100001, 1))
+    map = Map('테스트', '테스트', '', respawn_info_list)
+    world = GlobalInstance.get_world()
+    world.add_map(map)
+    world.respawn_npcs()
+
+    objs = map.get_alive_object_list()
+    assert objs[0].get_id() == 100000
+    assert objs[1].get_id() == 100000
+    assert objs[2].get_id() == 100001
+
+    objs[1].get_component(GocAttribute).set_hp(0)
+    world.respawn_npcs()
+    
+    objs = map.get_alive_object_list()
+    assert objs[0].get_id() == 100000
+    assert objs[1].get_id() == 100000
+    assert objs[2].get_id() == 100001
+
+    CharacterTable.deinitialize()
+
+
+
+
+
+
 
 
 

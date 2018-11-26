@@ -2,20 +2,28 @@
 
 from __future__ import annotations
 import weakref
-from typing import List, Optional
+from typing import List, Tuple, Optional
 from ..components.gameobject import GameObject
+from ..components.attribute import GocAttribute
+
+class RespawnInfo:
+    '''npc 리스폰 정보'''
+    def __init__(self, id, num):
+        self.id = id
+        self.num = num
 
 class Map:
     """
     방 하나를 담당하는 클래스
     """
     
-    def __init__(self, id: str, name: str = '', desc: str = ''):
+    def __init__(self, id: str, name: str = '', desc: str = '', respawn_info_list = []):
         self._id = id
         self._visitable_maps = weakref.WeakValueDictionary()
         self._name = name
         self._desc = desc
         self._objs = []
+        self._respawn_info_list = respawn_info_list
 
     def get_id(self) -> str:
         return self._id
@@ -56,9 +64,6 @@ class Map:
     def get_visitable_map_dest_list(self) -> List[Optional[str]]:
         return list(self._visitable_maps.keys())
             
-    def update(self):
-        pass
-
     def enter_map(self, obj: GameObject) -> bool:
         if obj in self._objs:
             return False
@@ -100,8 +105,28 @@ class Map:
         
         return obj_list[order]
 
-    def get_object_list(self) -> List[Optional[GameObject]]:
+    def get_npc_object_num(self, id: int) -> int:
+        '''id로 살아있는 객체의 갯수를 얻어온다'''
+        obj_list = [obj for obj in self._objs \
+                    if obj.get_id() == id and not obj.get_component(GocAttribute).is_die()]
+        return len(obj_list)
+
+    def get_object_list(self) -> Tuple[Optional[GameObject]]:
         return tuple(self._objs)
+
+    def get_alive_object_list(self) -> Tuple[Optional[GameObject]]:
+        obj_list = [obj for obj in self._objs if not obj.get_component(GocAttribute).is_die()]
+        return tuple(obj_list)
+
+    def get_respawn_info_list(self) -> Tuple[Optional[RespawnInfo]]:
+        result = []
+        for respawn_info in self._respawn_info_list:
+            id = respawn_info.id
+            num = respawn_info.num
+            obj_num = self.get_npc_object_num(id)
+            if obj_num < num:
+                result.append(RespawnInfo(id, num - obj_num))
+        return tuple(result)
 
 
 

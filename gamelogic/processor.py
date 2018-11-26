@@ -10,6 +10,7 @@ from .components.gameobject import GameObject
 from .utils.timer import Timer
 from .world.world import World
 from .world.map import Map
+from .world.map import RespawnInfo
 from .components.behaviour import GocBehaviour
 from .components.entity import GocEntity
 from .components.network import GocNetworkBase
@@ -51,8 +52,12 @@ class GameLogicProcessor(GlobalInstanceContainer):
         map1 = Map(global_define.ENTER_ROOM_ID, '광장 입구', '중앙에는 분수대가 있고 많은 사람들이 \
 분주하게 움직이고 있다.')
         map2 = Map('광장_00_01', '광장 남쪽', '북쪽으로 분수대가 보인다. 많은 사람들이 분주하게 움직이고 있다.')
+        
+        respawn_info_list = []
+        respawn_info_list.append(RespawnInfo(100000, 2))
+        respawn_info_list.append(RespawnInfo(100001, 1))
         map3 = Map('광장_00_02', '광장 북쪽', '남쪽으로 분수대가 보인다. 북쪽으로 커다란 성이 보인다.\n\
-하지만 경비병들이 막아서고 있어서 들어가진 못할 것 같다.')
+하지만 경비병들이 막아서고 있어서 들어가진 못할 것 같다.', respawn_info_list)
 
         map1.add_visitable_map('s', map2)
         map1.add_visitable_map('n', map3)
@@ -64,13 +69,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
         self._world.add_map(map2)
         self._world.add_map(map3)
 
-        npc1 = factory.create_object_npc(100000)
-        self._world.add_npc(npc1)
-        npc1.get_component(GocBehaviour).enter_map('광장_00_02')
-
-        npc2 = factory.create_object_npc(100001)
-        self._world.add_npc(npc2)
-        npc2.get_component(GocBehaviour).enter_map('광장_00_02')
+        self._world.respawn_npcs()
 
     def start(self):
         self._is_start = True
@@ -88,7 +87,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
             if entity.is_destroy():
                 #종료시에 필요한 database 업데이트
                 await player_obj.get_component(GocDatabase).update_hp()
-                self._world.del_player(player_obj)
+                self._world.del_object(player_obj, True)
 
         if not self._is_start:
             return
@@ -254,7 +253,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
         player = factory.create_object_player(player_name, client_info, id, lv, xp, hp)        
         client_info.set_player(player)
         client_info.set_status(ClientInfo.STATUS_LOGIN)
-        self._world.add_player(player)
+        self._world.add_object(player, True)
         player.get_component(GocBehaviour).enter_map(global_define.ENTER_ROOM_ID)
         behaviour: GocBehaviour = player.get_component(GocBehaviour)
         behaviour.output_command_prompt()

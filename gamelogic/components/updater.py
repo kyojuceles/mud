@@ -29,7 +29,10 @@ class GocUpdater(GocUpdaterBase):
         self._reset_update()
 
     def update_recovery(self):
-        #최대 hp의 5프로가 회복된다.(임시)
+        entity: GocEntity = self.get_component(GocEntity)
+        if entity.is_die():
+            return
+
         behaviour: GocBehaviour = self.get_component(GocBehaviour)
         network_base: GocNetworkBase = self.get_component(GocNetworkBase)
         behaviour.recovery_by_percent(5)

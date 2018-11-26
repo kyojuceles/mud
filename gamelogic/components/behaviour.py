@@ -176,7 +176,7 @@ class GocBehaviour(Component):
         if not self.has_component(GocEntity):
             return False
 
-        world = GlobalInstance.get_world()
+        world: World = GlobalInstance.get_world()
         map = world.get_map(map_id)
         if map is None:
             return False
