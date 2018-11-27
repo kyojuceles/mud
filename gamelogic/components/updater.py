@@ -1,4 +1,5 @@
 #updater.py
+import random
 import db.db_processor_mysql as db_processor
 from ..global_instance import GlobalInstance
 from .updater_base import GocUpdaterBase
@@ -9,6 +10,7 @@ from .behaviour import GocBehaviour
 from .entity import GocEntity
 from .network import GocNetworkBase
 from ..tables.character_table import CharacterTable
+from ..tables.item_table import ItemTable
 
 class GocUpdater(GocUpdaterBase):
     '''
@@ -94,7 +96,8 @@ class GocUpdater(GocUpdaterBase):
             # 플레이어인 경우 경험치 획득.
             if team_attribute.is_player():
                 attribute: GocAttribute = self.get_component(GocAttribute)
-                gain_xp = CharacterTable.get_chr_info(target.get_id()).gain_xp
+                target_chr_info = CharacterTable.get_chr_info(target.get_id())
+                gain_xp = target_chr_info.gain_xp
                 is_level_up = attribute.gain_xp(gain_xp)
                 self.get_component(GocNetworkBase).send('%d 경험치를 획득했습니다.\n' % gain_xp)
                 # 레벨업 처리.
@@ -104,6 +107,18 @@ class GocUpdater(GocUpdaterBase):
                 #db에서 레벨과 경험치를 업데이트 한다.
                 await self.get_component(GocDatabase).update_level_and_xp()
 
+                #아이템 획득 처리.
+                reward_item_id = target_chr_info.reward_item_id
+                reward_probability = target_chr_info.reward_probability
+                reward_item_info = ItemTable.get_item_info(reward_item_id)
+
+                if reward_item_info is not None:
+                    random_number = random.randrange(1, 100)
+                    if random_number <= reward_probability:
+                        ret = await self.get_component(GocDatabase).create_item(reward_item_id)
+                        if ret:
+                            self.get_component(GocNetworkBase).send('%s을 얻었습니다.\n' % reward_item_info.name)
+                    
         behaviour.output_command_prompt()
 
 

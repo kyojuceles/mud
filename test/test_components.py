@@ -261,8 +261,8 @@ def test_data_tables():
     assert level_info_6 is None
 
     chr_table = CharacterTable.initialize()
-    chr_table.add_row(1000, '경비병', 10, 100, 10, 1, 1)
-    chr_table.add_row(1001, '경비대장', 100, 150, 12, 1, 1)
+    chr_table.add_row(1000, '경비병', 10, 100, 10, 1, 1, -1, 0)
+    chr_table.add_row(1001, '경비대장', 100, 150, 12, 1, 1, -1, 0)
 
     chr_info_1000 = CharacterTable.get_chr_info(1000)
     chr_info_1001 = CharacterTable.get_chr_info(1001)

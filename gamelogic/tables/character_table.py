@@ -3,13 +3,16 @@ from __future__ import annotations
 
 class CharacterInfo:
     def __init__(self, name: str, gain_xp: int,
-         max_hp: int, atk: int, armor: int, spd: int):
+         max_hp: int, atk: int, armor: int, spd: int,
+         reward_item_id: int, reward_probability: int):
         self.name = name
         self.gain_xp = gain_xp
         self.max_hp = max_hp
         self.atk = atk
         self.armor = armor
         self.spd = spd
+        self.reward_item_id = reward_item_id
+        self.reward_probability = reward_probability
 
 class CharacterTable:
     '''
@@ -39,13 +42,13 @@ class CharacterTable:
         self._table = {}
 
     def init_test(self):
-        self.add_row(100000, 'soldier', 10, 100, 10, 1, 1)
-        self.add_row(100001, 'soldier_leader', 100, 150, 11, 1, 1)
+        self.add_row(100000, 'soldier', 10, 100, 10, 1, 1, 0, 100)
+        self.add_row(100001, 'soldier_leader', 100, 150, 11, 1, 1, 0, 100)
 
     def add_row(self,\
      id: int, name: str, gain_xp: int, max_hp: int,\
-     atk: int, armor: int, spd: int) -> bool:
-        chr_info = CharacterInfo(name, gain_xp, max_hp, atk, armor, spd)
+     atk: int, armor: int, spd: int, reward_item_id: int, reward_probability: int) -> bool:
+        chr_info = CharacterInfo(name, gain_xp, max_hp, atk, armor, spd, reward_item_id, reward_probability)
 
         if id in self._table:
             return False

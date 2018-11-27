@@ -41,5 +41,21 @@ class GocDatabase(Component):
 
         return True
 
+    async def create_item(self, item_id: int) -> bool:
+        ret, uid = await db_processor.create_item(self._player_uid, item_id)
+
+        if not ret or uid == -1:
+            return False
+
+        #생성한 아이템을 생성해서 인벤토리에 넣는다.
+        from . import factory
+        inventory: GocInventory = self.get_component(GocInventory)
+        item = factory.create_item(uid, item_id)
+        if item is not None:
+            inventory.add_item(item)
+
+        return True
+        
+
 
         
