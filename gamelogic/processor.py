@@ -34,7 +34,8 @@ class GameLogicProcessor(GlobalInstanceContainer):
         self._event: GameLogicProcessorEvent = event
         self._world: World = World()
         self._update_timer: Timer = Timer(global_define.UPDATE_INTERVAL)
-        
+    
+    def initialize(self):
         # singleton classes initialize
         GlobalInstance.set_global_instance_container(self)
         CharacterTable.initialize()
@@ -46,7 +47,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
         LevelTable.instance().init_test()
         ItemTable.instance().init_test()
     
-    def __del__(self):
+    def deinitialize(self):
         # singleton classes deinitialize
         ItemTable.deinitialize()
         LevelTable.deinitialize()

@@ -64,6 +64,7 @@ class TestNetworkConsoleEvent():
 def test_move_with_player():
     processor = GameLogicProcessor(
         TestGameLogicProcessorEvent())
+    processor.initialize()
     processor.start()
     world = processor.get_world()
 
@@ -123,6 +124,7 @@ def test_move_with_player():
     assert current_map.get_id() == '광장_00_00'
 
     processor.stop()
+    processor.deinitialize()
 
 def test_dest_after_add_dest_to_map():
     map1 = Map('광장_00_00')

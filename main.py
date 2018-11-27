@@ -31,7 +31,8 @@ class MudServer(GameLogicProcessorEvent, ConnectionManagerEventBase):
         self.event_output('DB server에 접속했습니다.\n')
 
         db_processor.set_log_handler(self.event_output)
-        self._game_logic_processor = GameLogicProcessor(self)        
+        self._game_logic_processor = GameLogicProcessor(self)
+        self._game_logic_processor.initialize()        
         self._connection_manager = ConnectionManager(self)     
         self._game_logic_processor.init_test()
         self._game_logic_processor.start()
@@ -47,6 +48,7 @@ class MudServer(GameLogicProcessorEvent, ConnectionManagerEventBase):
 
     def stop(self):
         self._connection_manager.close()
+        self._game_logic_processor.deinitialize()
         self._game_logic_processor = None
         self._connection_manager = None
         db_processor.close()
