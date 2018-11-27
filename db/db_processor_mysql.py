@@ -99,6 +99,37 @@ async def update_hp(name: str, hp: int):
 
     return True
 
+async def create_item(player_uid:int, item_id: int):
+    '''db에 아이템을 추가한다.'''
+    global _pool
+    uid = -1
+    async with await _pool.Connection() as conn:
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("INSERT INTO item (player_uid, item_id)\
+                 values ('%d', %d)" % player_uid, item_id)
+            uid = conn.insert_id()
+        except Exception as ex:
+            _error_report(ex)
+            return False, -1
+        await conn.commit()
+
+    return True, uid
+
+async def get_item_list(player_uid: int):
+    '''db에서 특정 플레이어의 소유 아이템 리스트를 얻어온다.'''
+    global _pool
+    async with await _pool.Connection() as conn:
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("SELECT uid, item_id FROM item where player_uid = %d" % player_uid)
+                datas = cursor.fetchall()
+        except Exception as ex:
+            _error_report(ex)
+            return tuple(), False
+
+    return datas, True
+
 def close():
     '''db pool을 종료한다.'''
     global _pool

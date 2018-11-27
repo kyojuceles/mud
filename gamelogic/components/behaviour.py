@@ -6,6 +6,8 @@ from .gameobject import Component
 from .entity import GocEntity
 from .attribute import GocAttribute
 from .team_attribute import GocTeamAttribute
+from .inventory import GocInventory
+from ..item.item import Item
 from ..world.map import Map
 from ..world.world import World
 from ..global_instance import GlobalInstance
@@ -105,6 +107,15 @@ class GocBehaviour(Component):
         network_base: GocNetworkBase = self.get_component(GocNetworkBase)
         network_base.broadcast_in_world('%s님이 "%s"라고 외쳤습니다.\n' % (self.get_owner_name_title(), msg), True)
         network_base.send('당신이 "%s"라고 외쳤습니다.\n' % msg)       
+
+    def output_inventory(self):
+        '''소지품 리스트를 보여주는 기능'''
+        network_base:GocNetworkBase = self.get_component(GocNetworkBase)
+        inventory: GocInventory = self.get_component(GocInventory)
+        item_list = inventory.get_item_list()
+        network_base.send('[소지품]\n')
+        for item in item_list: #type: Item
+            network_base.send(item.get_name() + '\n')
 
     def flee(self) -> bool:
         entity: GocEntity = self.get_component(GocEntity)

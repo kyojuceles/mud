@@ -18,6 +18,7 @@ from .components.database import GocDatabase
 from .components import factory
 from .tables.character_table import CharacterTable
 from .tables.level_table import LevelTable
+from .tables.item_table import ItemTable
 
 class GameLogicProcessor(GlobalInstanceContainer):
     '''
@@ -37,13 +38,16 @@ class GameLogicProcessor(GlobalInstanceContainer):
         GlobalInstance.set_global_instance_container(self)
         CharacterTable.initialize()
         LevelTable.initialize()
+        ItemTable.initialize()
 
         # 테스트용 데이터 테이블 로드
         CharacterTable.instance().init_test()
         LevelTable.instance().init_test()
+        ItemTable.instance().init_test()
     
     def __del__(self):
         # singleton classes deinitialize
+        ItemTable.deinitialize()
         LevelTable.deinitialize()
         CharacterTable.deinitialize()
         GlobalInstance.set_global_instance_container(None)
@@ -184,7 +188,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
             return
 
         db_password = result[2]
-        player_uid = result[1]
+        player_uid = result[0]
         lv = result[3]
         xp = result[4]
         hp = result[5]
@@ -201,7 +205,11 @@ class GameLogicProcessor(GlobalInstanceContainer):
             client_info.set_echo_mode(True)
             return
 
+        #로그인 처리
         self._login(client_info, player_uid, lv, xp, hp)
+
+        #db에서 아이템리스트를 얻어온다.
+        await self._get_item_list_from_database(client_info)
  
     async def _dispatch_message_create_account_name(self, client_info: ClientInfo, msg: str):
         '''계정생성:계정 입력 단계를 처리'''
@@ -241,22 +249,27 @@ class GameLogicProcessor(GlobalInstanceContainer):
             self.output_login_name_message(client_info)
             client_info.set_echo_mode(True)
             return
+
         #로그인
         self._login(client_info, uid, 1, 0, -1)
 
-    def _login(self, client_info: ClientInfo, id: int, lv: int, xp: int, hp):
+    def _login(self, client_info: ClientInfo, player_uid: int, lv: int, xp: int, hp):
         client_info.set_echo_mode(True)
         player_name = client_info.get_player_name()
         player: GameObject = None
         self.output_welcome_message(client_info)
     
-        player = factory.create_object_player(player_name, client_info, id, lv, xp, hp)        
+        player = factory.create_object_player(player_name, client_info, player_uid, lv, xp, hp)        
         client_info.set_player(player)
         client_info.set_status(ClientInfo.STATUS_LOGIN)
         self._world.add_object(player, True)
         player.get_component(GocBehaviour).enter_map(global_define.ENTER_ROOM_ID)
         behaviour: GocBehaviour = player.get_component(GocBehaviour)
         behaviour.output_command_prompt()
+
+    async def _get_item_list_from_database(self, client_info: ClientInfo):
+        player = client_info.get_player()
+        await player.get_component(GocDatabase).get_item_list()
 
     def _check_duplicate_login(self, player_name: str) -> bool:
         if (self._world.get_player(player_name) is not None):
@@ -315,6 +328,11 @@ class GameLogicProcessor(GlobalInstanceContainer):
         # 외치기 처리
         if cmd in ('외치기', 'shout'):
             behaviour.say_to_world(args[0])
+            return
+
+        # 소지품 처리
+        if cmd in ('소지품', 'inventory'):
+            behaviour.output_inventory()
             return
 
         # 종료 처리

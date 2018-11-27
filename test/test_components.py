@@ -7,6 +7,7 @@ from ..gamelogic.global_instance import GlobalInstanceContainer
 from ..gamelogic.components.attribute import GocAttribute
 from ..gamelogic.components.behaviour import GocBehaviour
 from ..gamelogic.components.updater import GocUpdaterBase
+from ..gamelogic.components.inventory import GocInventory
 from ..gamelogic.components import factory
 from ..gamelogic.world.world import World
 from ..gamelogic.world.map import Map
@@ -20,6 +21,7 @@ from ..gamelogic.tables.character_table import CharacterTable
 from ..gamelogic.components.network import GocNetworkBase
 from ..gamelogic.client_info import ClientInfo
 from ..gamelogic.tables.character_table import CharacterTable
+from ..gamelogic.tables.item_table import ItemTable
 
 def test_has_components_with_create_hero():
     hero = factory.create_object_npc_with_attribute('hero', -1, 100, 10, 1, 1, 0)
@@ -341,6 +343,32 @@ def test_respawn_npcs():
     assert objs[2].get_id() == 100001
 
     CharacterTable.deinitialize()
+
+def test_inventory_create_and_add_item():
+    GlobalInstance.set_global_instance_container(None)
+    global_instance: GlobalInstanceContainerTest = GlobalInstanceContainerTest(World())
+    ItemTable.initialize()
+    ItemTable.instance().add_row(0, 'wooden_sword')
+    ItemTable.instance().add_row(1, 'wooden_shield')
+
+    character = factory.create_object_npc_with_attribute('플레이어', 0, 100, 10, 0, 0, 0)
+    inventory: GocInventory = character.get_component(GocInventory)
+    item0 = factory.create_item(-1, 0)
+    item1 = factory.create_item(-1, 1)
+    inventory.add_item(item0)
+    inventory.add_item(item1)
+
+    inventory_item_list = inventory.get_item_list()
+    assert inventory_item_list[0].get_item_id() == 1
+    assert inventory_item_list[1].get_item_id() == 0
+
+    inventory.del_item(item0)
+    
+    inventory_item_list = inventory.get_item_list()
+    assert inventory_item_list[0].get_item_id() == 1
+
+    ItemTable.deinitialize()
+    GlobalInstance.set_global_instance_container(None)
 
 
 
