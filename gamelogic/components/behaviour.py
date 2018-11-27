@@ -203,14 +203,15 @@ class GocBehaviour(Component):
         self.output_current_map_desc()
         return True
 
-    def leave_map(self) -> bool:
+    def leave_map(self, notify = True) -> bool:
         entity: GocEntity = self.get_component(GocEntity)
         map = entity.get_map()
         if map is None:
             return False
 
-        self.get_component(GocNetworkBase).broadcast_in_map(
-            '%s가 나갔습니다.\n' % self.get_owner_name_title(), True)
+        if notify:
+            self.get_component(GocNetworkBase).broadcast_in_map(
+                '%s가 나갔습니다.\n' % self.get_owner_name_title(), True)
         entity.set_map(None)
         return map.leave_map(self.get_owner())
 
@@ -251,10 +252,6 @@ class GocBehaviour(Component):
         return True
 
     def leave_world(self) -> bool:
-        teamAttribute: GocTeamAttribute = self.get_component(GocTeamAttribute)
-        if not teamAttribute.is_player:
-            return False
-
         self.leave_map()
         entity: GocEntity = self.get_component(GocEntity)
         entity.destroy()

@@ -42,8 +42,11 @@ class World:
 
         return self._players[name]
 
-    def get_player_list(self) -> GameObject:
+    def get_player_list(self):
         return list(self._players.values())
+
+    def get_object_list(self):
+        return self._objs
 
     def add_map(self, map: Map) -> bool:
         assert(isinstance(map, Map))
@@ -75,6 +78,7 @@ class World:
                 await updater.update()
                 if is_recovery_tick:
                     updater.update_recovery()
+                    updater.update_death()
         
         if is_recovery_tick:
             self.respawn_npcs()

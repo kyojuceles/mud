@@ -39,6 +39,17 @@ class GocUpdater(GocUpdaterBase):
         network_base.send('\n')
         behaviour.output_command_prompt()
 
+    def update_death(self):
+        entity: GocEntity = self.get_component(GocEntity)
+        team_attribute: GocTeamAttribute = self.get_component(GocTeamAttribute)
+        if not entity.is_die():
+            return
+
+        # npc의 경우 시체가 사라지는 처리.
+        if not team_attribute.is_player():
+            behaviour: GocBehaviour = self.get_component(GocBehaviour)
+            behaviour.leave_map(False)
+
     def _reset_update(self):
         '''매 턴마다 필요한 초기화를 하는 함수'''
         entity: GocEntity = self.get_component(GocEntity)

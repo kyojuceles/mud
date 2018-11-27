@@ -14,6 +14,7 @@ from .world.map import RespawnInfo
 from .components.behaviour import GocBehaviour
 from .components.entity import GocEntity
 from .components.network import GocNetworkBase
+from .components.team_attribute import GocTeamAttribute
 from .components.database import GocDatabase
 from .components import factory
 from .tables.character_table import CharacterTable
@@ -85,13 +86,16 @@ class GameLogicProcessor(GlobalInstanceContainer):
 
     async def update(self):
         #게임을 종료한 플레이어 처리.
-        player_objs = self._world.get_player_list()
-        for player_obj in player_objs:
-            entity: GocEntity = player_obj.get_component(GocEntity)
+        objs = self._world.get_object_list()
+        for obj in objs:
+            entity: GocEntity = obj.get_component(GocEntity)
+            team_attribute: GocTeamAttribute = obj.get_component(GocTeamAttribute)
             if entity.is_destroy():
-                #종료시에 필요한 database 업데이트
-                await player_obj.get_component(GocDatabase).update_hp()
-                self._world.del_object(player_obj, True)
+                #플레이어인 경우 종료시에 필요한 database 업데이트
+                is_player = team_attribute.is_player()
+                if is_player:
+                    await obj.get_component(GocDatabase).update_hp()
+                self._world.del_object(obj, is_player)
 
         if not self._is_start:
             return

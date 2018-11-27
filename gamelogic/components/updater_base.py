@@ -13,3 +13,6 @@ class GocUpdaterBase(Component):
 
     def update_recovery(self):
         raise NotImplementedError('you should implement update_recovery method')
+
+    def update_death(self):
+        raise NotImplementedError('you should implement update_death method')
