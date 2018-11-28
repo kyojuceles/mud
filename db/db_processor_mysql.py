@@ -1,6 +1,7 @@
 #db_processor_mysql.py
 import asyncio
 import tormysql
+import pymysql
 
 _pool = None
 _handler = None
@@ -39,12 +40,12 @@ async def create_account(name: str, password: str):
     '''db에 계정을 생성한다.'''
     global _pool
     uid = -1
+    prevented_name = pymysql.escape_string(name)
+    query = "INSERT INTO player (name, password, lv, xp, hp) values ('%s', '%s', 1, 0, 150)" % (prevented_name, password)
     async with await _pool.Connection() as conn:
         try:
             async with conn.cursor() as cursor:
-                await cursor.execute(\
-                    "INSERT INTO player (name, password, lv, xp, hp) values ('%s', '%s', 1, 0, 150)"\
-                    % (name, password))
+                await cursor.execute(query)
                 uid = conn.insert_id()
         except Exception as ex:
             await conn.rollback()
@@ -57,10 +58,12 @@ async def create_account(name: str, password: str):
 async def get_player_info(name: str) -> tuple:
     '''db에서 플레이어 정보를 얻어온다.'''
     global _pool
+    prevented_name = pymysql.escape_string(name)
+    query = "SELECT uid, name, password, lv, xp, hp FROM player where name = '%s'" % prevented_name
     async with await _pool.Connection() as conn:
         try:
             async with conn.cursor() as cursor:
-                await cursor.execute("SELECT uid, name, password, lv, xp, hp FROM player where name = '%s'" % name)
+                await cursor.execute(query)
                 data = cursor.fetchone()
         except Exception as ex:
             _error_report(ex)
@@ -151,7 +154,6 @@ if __name__ == '__main__':
     set_log_handler(error_handler)
     result = connect_db_server('127.0.0.1', 'root', 'Mysql12345', 'mud_db', loop)
     print('db connect result is ' + str(result))
-    loop.run_until_complete(create_item(37, 0))
     close()
 
 
