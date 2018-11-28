@@ -30,7 +30,7 @@ class World:
         assert(isinstance(obj, GameObject))
 
         if is_player:
-            if obj.get_name() not in self._players:
+            if obj.get_name() in self._players:
                 del self._players[obj.get_name()]
 
         self._del_object(obj)
