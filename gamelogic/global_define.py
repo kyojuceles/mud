@@ -63,4 +63,7 @@ create_account_name_already = '이미 존재하는 계정입니다.\n'
 create_account_name_not_space_msg = '이름에는 공백이 포함되어서는 안됩니다.\n'
 create_account_fail_msg = '계정을 생성하는데 실패했습니다.\n'
 
+use_skill_not_exist = '스킬을 가지고 있지 않습니다.\n'
+use_skill_sp_is_not_enough = '기력이 부족해서 스킬을 사용할 수가 없습니다.\n'
+
 ban_account_list = set(['새로만들기'])

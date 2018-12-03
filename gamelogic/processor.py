@@ -16,6 +16,7 @@ from .components.entity import GocEntity
 from .components.network import GocNetworkBase
 from .components.team_attribute import GocTeamAttribute
 from .components.database import GocDatabase
+from .components.skill import GocSkill
 from .components import factory
 from .tables.character_table import CharacterTable
 from .tables.level_table import LevelTable
@@ -197,6 +198,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
         lv = result[3]
         xp = result[4]
         hp = result[5]
+        sp = -1
 
         #패스워드 체크
         if encrypt.encrypt_sha256(msg) != db_password:
@@ -211,7 +213,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
             return
 
         #로그인 처리
-        self._login(client_info, player_uid, lv, xp, hp)
+        self._login(client_info, player_uid, lv, xp, hp, sp)
 
         #db에서 아이템리스트를 얻어온다.
         await self._get_item_list_from_database(client_info)
@@ -256,15 +258,15 @@ class GameLogicProcessor(GlobalInstanceContainer):
             return
 
         #로그인
-        self._login(client_info, uid, 1, 0, -1)
+        self._login(client_info, uid, 1, 0, -1, -1)
 
-    def _login(self, client_info: ClientInfo, player_uid: int, lv: int, xp: int, hp):
+    def _login(self, client_info: ClientInfo, player_uid: int, lv: int, xp: int, hp: int, sp: int):
         client_info.set_echo_mode(True)
         player_name = client_info.get_player_name()
         player: GameObject = None
         self.output_welcome_message(client_info)
     
-        player = factory.create_object_player(player_name, client_info, player_uid, lv, xp, hp)        
+        player = factory.create_object_player(player_name, client_info, player_uid, lv, xp, hp, sp)        
         client_info.set_player(player)
         client_info.set_status(ClientInfo.STATUS_LOGIN)
         self._world.add_object(player, True)
@@ -338,6 +340,12 @@ class GameLogicProcessor(GlobalInstanceContainer):
         # 소지품 처리
         if cmd in ('소지품', 'inventory'):
             behaviour.output_inventory()
+            return
+
+        # 스킬 사용 처리
+        if cmd in ('힐', 'heal'):
+            skill: GocSkill = player.get_component(GocSkill)
+            skill.use_skill(cmd, '')
             return
 
         # 종료 처리

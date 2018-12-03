@@ -14,6 +14,8 @@ class GocAttribute(Component):
         self.next_xp = 0
         self.hp = 0
         self.max_hp = 0
+        self.sp = 0
+        self.max_sp = 0
         self.atk = 0
         self.armor = 0
         self.spd = 0
@@ -21,9 +23,12 @@ class GocAttribute(Component):
     def set_attribute(
             self, lv: int, xp: int,
             max_hp: int = 0, hp: int = 0,
+            max_sp: int = 0, sp: int = 0,
             atk: int = 0, armor:int = 0, spd: int = 0):
         self.max_hp = max_hp
         self.hp = hp
+        self.max_sp = max_sp
+        self.sp = sp
         self.atk = atk
         self.armor = armor
         self.spd = spd
@@ -36,6 +41,7 @@ class GocAttribute(Component):
         if team_attribute.is_player():
             level_info = LevelTable.get_lv_info(self.lv)
             self.max_hp = level_info.max_hp
+            self.max_sp = level_info.max_sp
             self.atk = level_info.atk
             self.armor = level_info.armor
             self.spd = level_info.spd
@@ -48,6 +54,7 @@ class GocAttribute(Component):
         self.lv += 1
         self.calculate()
         self.set_hp_full()
+        self.set_sp_full()
 
     def set_hp(self, hp: int):
         self.hp = max(0, hp)
@@ -56,9 +63,17 @@ class GocAttribute(Component):
     def set_hp_full(self):
         self.hp = self.max_hp
 
+    def set_sp(self, sp: int):
+        self.sp = max(0, sp)
+        self.sp = min(self.max_sp, self.sp)
+
+    def set_sp_full(self):
+        self.sp = self.max_sp
+
     def get_status_desc(self):
         desc = '레벨:\t %d\t\t 경험치:\t%d/%d\n' % (self.lv, self.xp, self.next_xp)
         desc += '체력:\t %d/%d\n' % (self.hp, self.max_hp)
+        desc += '기력:\t %d/%d\n' % (self.sp, self.max_sp)
         desc += '공격력:\t %d\n' % self.atk
         desc += '방어력:\t %d\n' % self.armor
         desc += '속도:\t %d\n' % self.spd

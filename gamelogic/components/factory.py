@@ -8,6 +8,7 @@ import gamelogic.global_define as global_define
 from .gameobject import GameObject
 from .behaviour import GocBehaviour
 from .attribute import GocAttribute
+from .skill import GocSkill
 from .database import GocDatabase
 from .team_attribute import GocTeamAttribute
 from .updater_base import GocUpdaterBase
@@ -32,9 +33,11 @@ def create_object_base(\
     obj.add_component(GocBehaviour)
     obj.add_component_with_key(GocUpdaterBase, GocUpdater)
     obj.add_component(GocInventory)
+    skill: GocSkill = obj.add_component(GocSkill)
+
     return obj
 
-def create_object_player(name: str, client_info, player_uid: int, lv: int, xp: int, hp: int) -> GameObject:
+def create_object_player(name: str, client_info, player_uid: int, lv: int, xp: int, hp: int, sp: int) -> GameObject:
     '''player GameObject를 생성하는 함수'''
     obj = create_object_base(name, True, -1, 0)
     obj.add_component_with_key(GocNetworkBase, GocNetwork, client_info)
@@ -46,17 +49,25 @@ def create_object_player(name: str, client_info, player_uid: int, lv: int, xp: i
         attribute.set_hp_full()
     else:
         attribute.set_hp(hp)
+
+    if sp < 0:
+        attribute.set_sp_full()
+    else:
+        attribute.set_sp(sp)
+
+    obj.get_component(GocSkill).init_test()
+
     return obj
 
 def create_object_npc_with_attribute(\
      name: str, id: int,\
-     hp: int, atk: int, armor: int, spd: int, team_index: int) -> GameObject:
+     hp: int, sp: int, atk: int, armor: int, spd: int, team_index: int) -> GameObject:
     '''npc GameObject를 능력치를 지정하여 생성하는 함수'''
     obj = create_object_base(name, False, id, team_index)
     obj.add_component_with_key(GocNetworkBase, GocNetworkPass)
 
     attribute: GocAttribute = obj.get_component(GocAttribute)
-    attribute.set_attribute(0, 0, hp, hp, atk, armor, spd)
+    attribute.set_attribute(0, 0, hp, hp, sp, sp, atk, armor, spd)
     return obj
 
 def create_object_npc(id: int) -> GameObject:
@@ -71,6 +82,7 @@ def create_object_npc(id: int) -> GameObject:
     attribute: GocAttribute = obj.get_component(GocAttribute)
     attribute.set_attribute(
          0, 0, chr_info.max_hp, chr_info.max_hp,
+         0, 0,
          chr_info.atk, chr_info.armor, chr_info.spd)
     return obj
 

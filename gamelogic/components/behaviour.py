@@ -96,6 +96,13 @@ class GocBehaviour(Component):
 
         return True
 
+    def recovery(self, amount: int):
+        '''
+        amount만큼 hp를 회복한다.
+        '''
+        attribute: GocAttribute = self.get_component(GocAttribute)
+        attribute.set_hp(attribute.hp + amount)
+
     def say(self, msg):
         '''방에 있는 구성원들에게 말하는 기능'''
         network_base: GocNetworkBase = self.get_component(GocNetworkBase)

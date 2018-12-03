@@ -8,6 +8,8 @@ from ..gamelogic.components.attribute import GocAttribute
 from ..gamelogic.components.behaviour import GocBehaviour
 from ..gamelogic.components.updater import GocUpdaterBase
 from ..gamelogic.components.inventory import GocInventory
+from ..gamelogic.components.skill import GocSkill
+from ..gamelogic.components.skill import Skill
 from ..gamelogic.components import factory
 from ..gamelogic.world.world import World
 from ..gamelogic.world.map import Map
@@ -24,7 +26,7 @@ from ..gamelogic.tables.character_table import CharacterTable
 from ..gamelogic.tables.item_table import ItemTable
 
 def test_has_components_with_create_hero():
-    hero = factory.create_object_npc_with_attribute('hero', -1, 100, 10, 1, 1, 0)
+    hero = factory.create_object_npc_with_attribute('hero', -1, 100, 0, 10, 1, 1, 0)
     assert hero.has_component(GocAttribute)
     assert hero.has_component(GocBehaviour)
     assert hero.has_component(GocUpdaterBase)
@@ -37,7 +39,7 @@ def test_has_components_with_create_hero():
     assert attribute.spd == 1
 
 def test_player_after_add_player_to_world():
-    player = factory.create_object_npc_with_attribute('player', -1, 100, 10, 1, 1, 0)
+    player = factory.create_object_npc_with_attribute('player', -1, 100, 0, 10, 1, 1, 0)
     world = World()
     world.add_object(player, True)
 
@@ -86,7 +88,7 @@ def test_move_with_player():
 
     client_info = ClientInfo()
     client_info.set_player_name('플레이어')
-    processor._login(client_info, 0, 1, 0, -1)
+    processor._login(client_info, 0, 1, 0, -1, -1)
 
     player = client_info.get_player()
     entity: GocEntity = player.get_component(GocEntity)
@@ -167,7 +169,7 @@ def test_command_parse():
     assert ret == True and args == (test2_arg_string,)
 
 def test_game_object_enter_leave_map():
-    player = factory.create_object_npc_with_attribute('플레이어', -1, 100, 10, 1, 1, 0)
+    player = factory.create_object_npc_with_attribute('플레이어', -1, 100, 0, 10, 1, 1, 0)
     map = Map('테스트맵', '테스트맵', '정적이 흐르는 방')
     map.enter_map(player)
     obj = map.get_object('플레이어')
@@ -182,8 +184,8 @@ def test_game_object_enter_leave_map():
     assert obj == None
 
 def test_order_of_object_in_map():
-    player1 = factory.create_object_npc_with_attribute('플레이어', 0, 100, 10, 1, 1, 0)
-    player2 = factory.create_object_npc_with_attribute('플레이어', 1, 100, 10, 1, 1, 0)
+    player1 = factory.create_object_npc_with_attribute('플레이어', 0, 100, 0, 10, 1, 1, 0)
+    player2 = factory.create_object_npc_with_attribute('플레이어', 1, 100, 0, 10, 1, 1, 0)
     map = Map('테스트맵', '테스트맵', '정적이 흐르는 방')
     map.enter_map(player1)
     map.enter_map(player2)
@@ -199,7 +201,7 @@ def test_order_of_object_in_map():
     assert obj_list[1].get_id() == 1
 
 def test_output_map_desc():
-    player = factory.create_object_npc_with_attribute('플레이어', 0, 100, 10, 1, 1, 0)
+    player = factory.create_object_npc_with_attribute('플레이어', 0, 100, 0, 10, 1, 1, 0)
     map = Map('테스트맵', '테스트맵', '정적이 흐르는 방')
     map2 = Map('테스트맵2', '테스트맵2', '정적이 흐르는 방')
     map.add_visitable_map('남', map2)
@@ -209,8 +211,8 @@ def test_output_map_desc():
     assert map_desc == '[테스트맵]\n정적이 흐르는 방\n[남]\n'
 
 def test_start_battle_with_behaviour():
-    attacker = factory.create_object_npc_with_attribute('공격자', 0, 100, 10, 1, 1, 0)
-    target = factory.create_object_npc_with_attribute('방어자', 1, 100, 10, 1, 1, 1)
+    attacker = factory.create_object_npc_with_attribute('공격자', 0, 100, 0, 10, 1, 1, 0)
+    target = factory.create_object_npc_with_attribute('방어자', 1, 100, 0, 10, 1, 1, 1)
     map = Map('테스트맵', '테스트맵', '정적이 흐르는 방')
     attacker.get_component(GocEntity).set_map(map)
     map.enter_map(attacker)
@@ -238,11 +240,11 @@ def test_start_battle_with_behaviour():
 
 def test_data_tables():
     table = LevelTable.initialize()
-    table.add_row(1, 100, 100, 10, 1, 1)
-    table.add_row(2, 200, 150, 12, 1, 1)
-    table.add_row(3, 300, 200, 14, 2, 1)
-    table.add_row(4, 400, 250, 16, 2, 1)
-    table.add_row(5, 500, 300, 18, 1, 1)
+    table.add_row(1, 100, 100, 10, 10, 1, 1)
+    table.add_row(2, 200, 150, 20, 12, 1, 1)
+    table.add_row(3, 300, 200, 30, 14, 2, 1)
+    table.add_row(4, 400, 250, 40, 16, 2, 1)
+    table.add_row(5, 500, 300, 50, 18, 1, 1)
 
     level_info_1 = LevelTable.get_lv_info(1)
     level_info_3 = LevelTable.get_lv_info(3)
@@ -285,12 +287,12 @@ def test_data_tables():
     assert chr_info_1002 is None
 
 def test_just_call_method():
-    obj = factory.create_object_npc_with_attribute('플레이어', 0, 100, 10, 0, 0, 0)
+    obj = factory.create_object_npc_with_attribute('플레이어', 0, 100, 0, 10, 0, 0, 0)
     obj.get_component(GocNetworkBase).broadcast_in_map('테스트')
     #obj.get_component(GocNetworkBase).broadcast_in_world('테스트')
 
 def test_recovery_by_percent_hp():
-    obj = factory.create_object_npc_with_attribute('플레이어', 0, 100, 10, 0, 0, 0)
+    obj = factory.create_object_npc_with_attribute('플레이어', 0, 100, 0, 10, 0, 0, 0)
     attribute: GocAttribute = obj.get_component(GocAttribute)
     attribute.set_hp(1)
     behaviour: GocBehaviour = obj.get_component(GocBehaviour)
@@ -332,17 +334,17 @@ def test_respawn_npcs():
     world.respawn_npcs()
 
     objs = map.get_alive_object_list()
-    assert objs[0].get_id() == 100000
+    assert objs[0].get_id() == 100001
     assert objs[1].get_id() == 100000
-    assert objs[2].get_id() == 100001
+    assert objs[2].get_id() == 100000
 
     objs[1].get_component(GocAttribute).set_hp(0)
     world.respawn_npcs()
     
     objs = map.get_alive_object_list()
-    assert objs[0].get_id() == 100000
+    assert objs[0].get_id() == 100001
     assert objs[1].get_id() == 100000
-    assert objs[2].get_id() == 100001
+    assert objs[2].get_id() == 100000
 
     CharacterTable.deinitialize()
 
@@ -353,7 +355,7 @@ def test_inventory_create_and_add_item():
     ItemTable.instance().add_row(0, 'wooden_sword')
     ItemTable.instance().add_row(1, 'wooden_shield')
 
-    character = factory.create_object_npc_with_attribute('플레이어', 0, 100, 10, 0, 0, 0)
+    character = factory.create_object_npc_with_attribute('플레이어', 0, 100, 0, 10, 0, 0, 0)
     inventory: GocInventory = character.get_component(GocInventory)
     item0 = factory.create_item(-1, 0)
     item1 = factory.create_item(-1, 1)
@@ -372,15 +374,18 @@ def test_inventory_create_and_add_item():
     ItemTable.deinitialize()
     GlobalInstance.set_global_instance_container(None)
 
+def test_use_heal_skill():
+    GlobalInstance.set_global_instance_container(None)
+    global_instance: GlobalInstanceContainerTest = GlobalInstanceContainerTest(World())
+    ItemTable.initialize()
 
+    character = factory.create_object_npc_with_attribute('플레이어', 0, 100, 100, 10, 0, 0, 0)
+    attribute: GocAttribute = character.get_component(GocAttribute)
+    skill: GocSkill = character.get_component(GocSkill)
+    heal_skill = Skill('힐', Skill.TYPE_RECOVERY_HP, 10, 10)
+    skill.add_skill(heal_skill)
 
+    attribute.set_hp(10)
+    skill.use_skill('힐')
 
-
-
-
-
-
-
-
-
-
+    assert attribute.hp == 20

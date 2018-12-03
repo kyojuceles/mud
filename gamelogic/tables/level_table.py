@@ -2,9 +2,10 @@
 from __future__ import annotations
 
 class LevelInfo:
-    def __init__(self, next_xp: int, max_hp: int, atk: int, armor: int, spd: int):
+    def __init__(self, next_xp: int, max_hp: int, max_sp: int, atk: int, armor: int, spd: int):
         self.next_xp = next_xp
         self.max_hp = max_hp
+        self.max_sp = max_sp
         self.atk = atk
         self.armor = armor
         self.spd = spd
@@ -42,17 +43,17 @@ class LevelTable:
         self._max_level = 0
 
     def init_test(self):
-        self.add_row(1, 100, 150, 10, 2, 1)
-        self.add_row(2, 200, 300, 12, 2, 1)
-        self.add_row(3, 300, 450, 14, 3, 1)
-        self.add_row(4, 400, 600, 16, 3, 1)
-        self.add_row(5, 500, 750, 18, 3, 1)
+        self.add_row(1, 100, 150, 20, 10, 2, 1)
+        self.add_row(2, 200, 300, 30, 12, 2, 1)
+        self.add_row(3, 300, 450, 40, 14, 3, 1)
+        self.add_row(4, 400, 600, 50, 16, 3, 1)
+        self.add_row(5, 500, 750, 60, 18, 3, 1)
         self.set_max_level(5)
 
-    def add_row(self,
-     lv: int, next_xp: int, max_hp: int,
+    def add_row(self,\
+     lv: int, next_xp: int, max_hp: int, max_sp: int,\
      atk: int, armor: int, spd: int) -> bool:
-        lv_info = LevelInfo(next_xp, max_hp, atk, armor, spd)
+        lv_info = LevelInfo(next_xp, max_hp, max_sp, atk, armor, spd)
 
         if lv in self._table:
             return False
