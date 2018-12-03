@@ -3,11 +3,33 @@ global_define.py
 
 전역으로 사용되는 값들의 모임
 '''
+import configparser
+
+DATABASE_HOST = '127.0.0.1'
+DATABASE_USER = 'root'
+DATABASE_PASSWORD = ''
+DATABASE_NAME = ''
+SERVER_LISTEN_PORT = 8888
+
+def load_ini(filename: str):
+    global DATABASE_HOST
+    global DATABASE_USER
+    global DATABASE_PASSWORD
+    global DATABASE_NAME
+    global SERVER_LISTEN_PORT
+
+    config = configparser.ConfigParser()
+    config.read(filename)
+    DATABASE_HOST = config['DATABASE']['HOST']
+    DATABASE_USER = config['DATABASE']['USER']
+    DATABASE_PASSWORD = config['DATABASE']['PASSWORd']
+    DATABASE_NAME = config['DATABASE']['DB_NAME']
+    
+    SERVER_LISTEN_PORT = int(config['SERVER']['LISTEN_PORT'])
 
 ENTER_ROOM_ID = '광장_00_00'
 UPDATE_INTERVAL = 1
 TICK_FOR_UPDATE_RECOVERY = 30
-CONSOLE_PLAYER_ID = -1
 
 welcome_msg = '==============================================================\n'\
               '접속을 환영합니다!\n'\

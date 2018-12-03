@@ -1,0 +1,10 @@
+;config.ini
+
+[SERVER]
+LISTEN_PORT = 8888
+
+[DATABASE]
+HOST = 127.0.0.1
+USER = root
+PASSWORD = ...
+DB_NAME = mud_db

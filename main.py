@@ -22,13 +22,18 @@ class MudServer(GameLogicProcessorEvent, ConnectionManagerEventBase):
         self._tasks = None
         self._local_client_info = None
         self._is_start = False
+        global_define.load_ini('config.ini')
 
     def start(self, listen_addr: str, listen_port: int) -> bool:
         loop = asyncio.get_event_loop()
         self._loop = loop
 
         self.event_output('DB server에 접속합니다.\n')
-        if not db_processor.connect_db_server('127.0.0.1', 'root', 'Mysql12345', 'mud_db', loop):
+        if not db_processor.connect_db_server(\
+                    global_define.DATABASE_HOST,\
+                    global_define.DATABASE_USER,\
+                    global_define.DATABASE_PASSWORD,\
+                    global_define.DATABASE_NAME, loop):
             return False
         self.event_output('DB server에 접속했습니다.\n')
 
@@ -38,7 +43,7 @@ class MudServer(GameLogicProcessorEvent, ConnectionManagerEventBase):
         self._connection_manager = ConnectionManager(self)     
         self._game_logic_processor.init_test()
         self._game_logic_processor.start()
-        self._connection_manager.start_server('127.0.0.1', 8888, loop)
+        self._connection_manager.start_server(listen_addr, listen_port, loop)
         listen_addr = self._connection_manager.get_listen_addr()
         listen_port = self._connection_manager.get_listen_port()
         self._game_logic_processor.get_event().event_output('접속을 받기 시작합니다. (%s:%d)\n' % (listen_addr, listen_port))
@@ -124,7 +129,7 @@ class MudServer(GameLogicProcessorEvent, ConnectionManagerEventBase):
         self._local_client_info = None
 
 mud_server = MudServer()
-if mud_server.start('127.0.0.1', 8888):
+if mud_server.start('127.0.0.1', global_define.SERVER_LISTEN_PORT):
     mud_server.loop()
 else:
     mud_server.event_output('DB Server 접속이 실패했습니다.\n')
