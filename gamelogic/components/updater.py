@@ -37,7 +37,8 @@ class GocUpdater(GocUpdaterBase):
 
         behaviour: GocBehaviour = self.get_component(GocBehaviour)
         network_base: GocNetworkBase = self.get_component(GocNetworkBase)
-        behaviour.recovery_by_percent(5)
+        behaviour.recovery_by_percent(25)
+        behaviour.recovery_sp_by_percent(25)
         network_base.send('\n')
         behaviour.output_command_prompt()
 

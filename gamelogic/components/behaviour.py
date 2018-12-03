@@ -87,12 +87,27 @@ class GocBehaviour(Component):
         percent의 범위는 1~100
         '''
         if percent < 1: return False
-        if percent > 100 : percent = 100
+        
+        percent = min(100, percent)
 
         attribute: GocAttribute = self.get_component(GocAttribute)
         max_hp = attribute.max_hp
         amount = int(max_hp * (percent / 100))
         attribute.set_hp(attribute.hp + amount)
+
+    def recovery_sp_by_percent(self, percent: int) -> bool:
+        '''
+        최대 sp의 퍼센트만큼을 회복한다.
+        percent의 범위는 1~100
+        '''
+        if percent < 1: return False
+
+        percent = min(100, percent)
+
+        attribute: GocAttribute = self.get_component(GocAttribute)
+        max_sp = attribute.max_sp
+        amount = int(max_sp * (percent / 100))
+        attribute.set_sp(attribute.sp + amount)
 
         return True
 
@@ -293,7 +308,7 @@ class GocBehaviour(Component):
         if not team_attribute.is_player():
             return
 
-        command_prompt = '[%d/%d] ' % (attribute.hp, attribute.max_hp)
+        command_prompt = '[%d|%d] ' % (attribute.hp, attribute.sp)
         self.get_component(GocNetworkBase).send(command_prompt)
 
     def output_help_msg(self):

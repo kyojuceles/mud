@@ -342,6 +342,12 @@ class GameLogicProcessor(GlobalInstanceContainer):
             behaviour.output_inventory()
             return
 
+        # 스킬 리스트
+        if cmd in ('스킬', 'skill'):
+            skill: GocSkill = player.get_component(GocSkill)
+            skill.output_skill_list()
+            return
+
         # 스킬 사용 처리
         if cmd in ('힐', 'heal'):
             skill: GocSkill = player.get_component(GocSkill)

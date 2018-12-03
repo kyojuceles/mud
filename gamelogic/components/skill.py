@@ -54,6 +54,12 @@ class GocSkill(Component):
         
         return result
 
+    def output_skill_list(self):
+        network_base: GocNetworkBase = self.get_component(GocNetworkBase)
+        network_base.send('[스킬리스트]\n')
+        for skill_name in self._skill_list.keys():
+            network_base.send(skill_name + '\n')
+
 class Skill:
     TYPE_RECOVERY_HP: int = 1
 
