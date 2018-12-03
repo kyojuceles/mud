@@ -10,6 +10,12 @@ https://github.com/kyojuceles/mud/raw/master/release/win32/mud_2018_12_03.zip
 3. config.ini.example을 config.ini로 이름을 바꾼다.
 4. main.exe를 실행한다.
 
+# 서버에 접속하기
+1. putty client를 설치한다. https://www.putty.org/
+2. telnet 프로토콜 선택한다.
+3. charset은 utf-8로 설정한다.
+4. config.ini에 설정된 port로 접속한다.
+
 # config.ini 설정하기
 [SERVER]<br>
 LISTEN_PORT : 접속을 받을 포트번호.<br>
