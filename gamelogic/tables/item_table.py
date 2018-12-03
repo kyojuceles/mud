@@ -33,8 +33,8 @@ class ItemTable:
         self._table = {}
 
     def init_test(self):
-        self.add_row(0, 'wooden_sword')
-        self.add_row(1, 'wooden_armor')
+        self.add_row(0, '목검')
+        self.add_row(1, '나무갑옷')
 
     def add_row(self, id: int, name: str) -> bool:
         item_info = ItemInfo(name)

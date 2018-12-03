@@ -42,8 +42,8 @@ class CharacterTable:
         self._table = {}
 
     def init_test(self):
-        self.add_row(100000, 'soldier', 10, 100, 10, 1, 1, 0, 100)
-        self.add_row(100001, 'soldier_leader', 100, 150, 11, 1, 1, 0, 100)
+        self.add_row(100000, '경비병', 10, 100, 10, 1, 1, 0, 100)
+        self.add_row(100001, '경비대장', 100, 150, 11, 1, 1, 0, 100)
 
     def add_row(self,\
      id: int, name: str, gain_xp: int, max_hp: int,\

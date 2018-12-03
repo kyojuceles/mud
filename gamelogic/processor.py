@@ -65,11 +65,11 @@ class GameLogicProcessor(GlobalInstanceContainer):
         map3 = Map('광장_00_02', '광장 북쪽', '남쪽으로 분수대가 보인다. 북쪽으로 커다란 성이 보인다.\n\
 하지만 경비병들이 막아서고 있어서 들어가진 못할 것 같다.', respawn_info_list)
 
-        map1.add_visitable_map('s', map2)
-        map1.add_visitable_map('n', map3)
+        map1.add_visitable_map('남', map2)
+        map1.add_visitable_map('북', map3)
 
-        map2.add_visitable_map('n', map1)
-        map3.add_visitable_map('s', map1)
+        map2.add_visitable_map('북', map1)
+        map3.add_visitable_map('남', map1)
 
         self._world.add_map(map1)
         self._world.add_map(map2)
