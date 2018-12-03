@@ -1,6 +1,9 @@
 # mud
 mud project with python 3.7.0
 
+# 최신버전 빌드
+https://github.com/kyojuceles/mud/raw/master/release/win32/mud_2018_12_03.zip
+
 # 시작하기
 1. mysql을 설치한다. https://www.mysql.com/
 2. mysql에 schema.sql를 import 시킨다.
