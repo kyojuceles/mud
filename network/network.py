@@ -2,6 +2,8 @@
 import sys
 import asyncio
 
+IAC: int = 255
+
 class ConnectionManagerEventBase:
     '''ConnectionManager로 부터 발생하는 이벤트를 받는 클래스'''
     async def on_connect(self, connection: 'Connection'):
@@ -33,6 +35,10 @@ class Connection:
             #접속이 끊겼을때 처리.
             if not data:
                 break
+
+            #negotiation 데이터 필터링(첫번째 값이 IAC이면 3바이트를 날려버림)
+            if data[0] == IAC:
+                data = data[3:]
 
             #도착한 메시지가 스트링이 아닌 경우 무시.
             try:

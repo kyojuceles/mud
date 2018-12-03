@@ -1,6 +1,7 @@
 #async_input.py
 import sys
 import select
+import asyncio
 
 read_list = [sys.stdin]
 
@@ -17,7 +18,28 @@ def read():
 
     for file in ready:
         line = file.readline()
-        result = line.split('\n')
-        results += [a for a in result if a != '']
+        split_lines = line.split('\n')
+        results += [a for a in split_lines if a != '']
 
     return results
+
+async def async_read():
+    loop = asyncio.get_event_loop()
+    results = []
+    line = await loop.run_in_executor(None, sys.stdin.readline)
+    if not line:
+        return []
+    
+    split_lines = line.split('\n')
+    results += [a for a in split_lines if a != '']
+
+    return results
+
+async def test():
+    while True:
+        result = await async_read()
+        print(result)
+    
+if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(test())

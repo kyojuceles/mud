@@ -1,6 +1,7 @@
 import time
 import sys
 import asyncio
+import platform
 import db.db_processor_mysql as db_processor
 import gamelogic.global_define as global_define
 from gamelogic.processor import GameLogicProcessor
@@ -20,6 +21,7 @@ class MudServer(GameLogicProcessorEvent, ConnectionManagerEventBase):
         self._loop = None
         self._tasks = None
         self._local_client_info = None
+        self._is_start = False
 
     def start(self, listen_addr: str, listen_port: int) -> bool:
         loop = asyncio.get_event_loop()
@@ -40,24 +42,38 @@ class MudServer(GameLogicProcessorEvent, ConnectionManagerEventBase):
         listen_addr = self._connection_manager.get_listen_addr()
         listen_port = self._connection_manager.get_listen_port()
         self._game_logic_processor.get_event().event_output('접속을 받기 시작합니다. (%s:%d)\n' % (listen_addr, listen_port))
-        self._tasks = [asyncio.ensure_future(self._update())]
+        self._tasks = [asyncio.ensure_future(self._update()),\
+                        asyncio.ensure_future(self._input_process())]
+        self._is_start = True
         return True
 
     def loop(self):
         self._loop.run_until_complete(asyncio.gather(*self._tasks))
 
     def stop(self):
+        if not self._is_start:
+            return
+
         self._connection_manager.close()
         self._game_logic_processor.deinitialize()
         self._game_logic_processor = None
         self._connection_manager = None
         db_processor.close()
-        
+
+    async def _input_process(self):
+        while True:
+            results = []
+            if platform.system() != 'Windows':
+                results = async_input.read()
+                await asyncio.sleep(0.00001)
+            else:
+                results = await async_input.async_read() 
+            
+            for result in results:
+                await self._console_command_process(result)
+
     async def _update(self):
         while True:
-            results = async_input.read()
-            for result in results:
-                await self._console_command_process(result) 
             await self._game_logic_processor.update()
             await asyncio.sleep(0.00001)
     
@@ -108,6 +124,9 @@ class MudServer(GameLogicProcessorEvent, ConnectionManagerEventBase):
         self._local_client_info = None
 
 mud_server = MudServer()
-mud_server.start('127.0.0.1', 8888)
-mud_server.loop()
+if mud_server.start('127.0.0.1', 8888):
+    mud_server.loop()
+else:
+    mud_server.event_output('DB Server 접속이 실패했습니다.\n')
+
 mud_server.stop()
