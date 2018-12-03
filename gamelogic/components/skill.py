@@ -75,10 +75,11 @@ class Skill:
         if self._effect_type == Skill.TYPE_RECOVERY_HP:
             if target is None:
                 return False
-            
-        behaviour: GocBehaviour = target.get_component(GocBehaviour)
-        behaviour.recovery(self._effect_arg)            
-        return True
+            behaviour: GocBehaviour = target.get_component(GocBehaviour)
+            behaviour.recovery(self._effect_arg)            
+            return True
+
+        return False
 
     def get_name(self):
         return self._name
