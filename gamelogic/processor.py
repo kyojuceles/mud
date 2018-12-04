@@ -198,7 +198,7 @@ class GameLogicProcessor(GlobalInstanceContainer):
         lv = result[3]
         xp = result[4]
         hp = result[5]
-        sp = -1
+        sp = result[6]
 
         #패스워드 체크
         if encrypt.encrypt_sha256(msg) != db_password:

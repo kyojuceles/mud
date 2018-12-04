@@ -41,7 +41,7 @@ async def create_account(name: str, password: str):
     global _pool
     uid = -1
     prevented_name = pymysql.escape_string(name)
-    query = "INSERT INTO player (name, password, lv, xp, hp) values ('%s', '%s', 1, 0, 150)" % (prevented_name, password)
+    query = "INSERT INTO player (name, password, lv, xp, hp, sp) values ('%s', '%s', 1, 0, -1, -1)" % (prevented_name, password)
     async with await _pool.Connection() as conn:
         try:
             async with conn.cursor() as cursor:
@@ -59,7 +59,7 @@ async def get_player_info(name: str) -> tuple:
     '''db에서 플레이어 정보를 얻어온다.'''
     global _pool
     prevented_name = pymysql.escape_string(name)
-    query = "SELECT uid, name, password, lv, xp, hp FROM player where name = '%s'" % prevented_name
+    query = "SELECT uid, name, password, lv, xp, hp, sp FROM player where name = '%s'" % prevented_name
     async with await _pool.Connection() as conn:
         try:
             async with conn.cursor() as cursor:
@@ -74,13 +74,13 @@ async def get_player_info(name: str) -> tuple:
 
     return data
 
-async def update_level_and_xp(name: str, lv: int, xp: int):
+async def update_level_and_xp(uid: int, lv: int, xp: int):
     '''level, xp 정보를 업데이트 한다.'''
     global _pool
     async with await _pool.Connection() as conn:
         try:
             async with conn.cursor() as cursor:
-                await cursor.execute("UPDATE player SET lv=%d, xp=%d where name = '%s'" % (lv, xp, name))
+                await cursor.execute("UPDATE player SET lv=%d, xp=%d where uid = %d" % (lv, xp, uid))
         except Exception as ex:
             _error_report(ex)
             return False
@@ -88,13 +88,13 @@ async def update_level_and_xp(name: str, lv: int, xp: int):
 
     return True
 
-async def update_hp(name: str, hp: int):
+async def update_hp_and_sp(uid: int, hp: int, sp: int):
     '''hp 정보를 업데이트 한다.'''
     global _pool
     async with await _pool.Connection() as conn:
         try:
             async with conn.cursor() as cursor:
-                await cursor.execute("UPDATE player SET hp=%d where name = '%s'" % (hp, name))
+                await cursor.execute("UPDATE player SET hp=%d, sp=%d where uid = %d" % (hp, sp, uid))
         except Exception as ex:
             _error_report(ex)
             return False
@@ -153,6 +153,8 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     set_log_handler(error_handler)
     result = connect_db_server('127.0.0.1', 'root', 'Mysql12345', 'mud_db', loop)
+    loop.run_until_complete(update_hp_and_sp(50, 10, 10))
+    result = loop.run_until_complete(get_player_info('test006'))
     print('db connect result is ' + str(result))
     close()
 
