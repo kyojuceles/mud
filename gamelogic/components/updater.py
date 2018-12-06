@@ -9,6 +9,7 @@ from .team_attribute import GocTeamAttribute
 from .behaviour import GocBehaviour
 from .entity import GocEntity
 from .network import GocNetworkBase
+from .skill import GocSkill
 from ..tables.character_table import CharacterTable
 from ..tables.item_table import ItemTable
 
@@ -29,6 +30,8 @@ class GocUpdater(GocUpdaterBase):
             await self._status_battle_update()
 
         self._reset_update()
+
+        self.get_component(GocSkill).reduce_cool_time()
 
     def update_recovery(self):
         entity: GocEntity = self.get_component(GocEntity)

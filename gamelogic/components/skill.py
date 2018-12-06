@@ -14,7 +14,7 @@ class GocSkill(Component):
         self._skill_list = {}
 
     def init_test(self):
-        self.add_skill(Skill('힐', Skill.TYPE_RECOVERY_HP, 100, 10))
+        self.add_skill(Skill('힐', Skill.TYPE_RECOVERY_HP, 100, 10, 2))
 
     def add_skill(self, skill: 'Skill') -> bool:
         if skill.get_name() in self._skill_list:
@@ -36,6 +36,12 @@ class GocSkill(Component):
 
         skill: Skill = self._skill_list[skill_name]
         attribute: GocAttribute = self.get_component(GocAttribute)
+
+        #skill cool time이 남았는지 체크
+        if skill.is_remain_cool_time():
+            self.get_component(GocNetworkBase).send(global_define.use_skill_cool_time)
+            return False
+
         #sp가 충분한지 체크
         if attribute.sp < skill.get_cost():
             self.get_component(GocNetworkBase).send(global_define.use_skill_sp_is_not_enough)
@@ -54,6 +60,10 @@ class GocSkill(Component):
         
         return result
 
+    def reduce_cool_time(self):
+        for skill in self._skill_list.values():
+            skill.reduce_cool_time()
+
     def output_skill_list(self):
         network_base: GocNetworkBase = self.get_component(GocNetworkBase)
         network_base.send('[스킬리스트]\n')
@@ -64,11 +74,13 @@ class Skill:
     TYPE_RECOVERY_HP: int = 1
 
     '''스킬 효과를 처리하는 클래스'''
-    def __init__(self, skill_name: str, effect_type: int, effect_arg: int, cost_sp: int):
+    def __init__(self, skill_name: str, effect_type: int, effect_arg: int, cost_sp: int, cool_time: int):
         self._name = skill_name
         self._effect_type = effect_type
         self._effect_arg = effect_arg
         self._cost_sp = cost_sp
+        self._cool_time = cool_time
+        self._remain_cool_time = 0
 
     def use(self, target: GameObject):
         #힐 효과 처리
@@ -76,10 +88,17 @@ class Skill:
             if target is None:
                 return False
             behaviour: GocBehaviour = target.get_component(GocBehaviour)
-            behaviour.recovery(self._effect_arg)            
+            behaviour.recovery(self._effect_arg)
+            self._remain_cool_time = self._cool_time            
             return True
 
         return False
+
+    def is_remain_cool_time(self):
+        return True if self._remain_cool_time > 0 else False
+
+    def reduce_cool_time(self):
+        self._remain_cool_time = max(0, self._remain_cool_time - 1)
 
     def get_name(self):
         return self._name

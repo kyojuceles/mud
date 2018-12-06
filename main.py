@@ -98,7 +98,7 @@ class MudServer(GameLogicProcessorEvent, ConnectionManagerEventBase):
         return True
 
     def event_output(self, output):
-        print('[SYSTEM] ' + output, end = '')
+        print('[SYSTEM] ' + str(output), end = '')
 
     async def on_connect(self, connection: 'Connection'):
         '''새로운 접속이 발생했을때의 처리'''

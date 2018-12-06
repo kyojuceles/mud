@@ -382,7 +382,7 @@ def test_use_heal_skill():
     character = factory.create_object_npc_with_attribute('플레이어', 0, 100, 100, 10, 0, 0, 0)
     attribute: GocAttribute = character.get_component(GocAttribute)
     skill: GocSkill = character.get_component(GocSkill)
-    heal_skill = Skill('힐', Skill.TYPE_RECOVERY_HP, 10, 10)
+    heal_skill = Skill('힐', Skill.TYPE_RECOVERY_HP, 10, 10, 2)
     skill.add_skill(heal_skill)
 
     attribute.set_hp(10)
